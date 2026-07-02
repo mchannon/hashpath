@@ -1,321 +1,197 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0a0a0f">
-<meta name="apple-mobile-web-app-title" content="Hashpath">
-<meta name="description" content="Compact procedural geography for real-world arrivals.">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Hashpath</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<meta name="description" content="Compact procedural geography for real-world arrivals.">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600;700&display=swap');
-:root{
-  --bg:#090910;--surface:#111118;--border:#25253a;--text:#ddddf0;--muted:#aaaad0;
-  --purple:#a673ff;--blue:#3a8fff;--green:#00d97e;--red:#ff4a3a;--amber:#ffbd4a;
-  --mono:'JetBrains Mono','Fira Mono',monospace;--ui:'DM Sans',system-ui,sans-serif;
-  --title-h:38px;--panel-w:390px;
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--ui)}
-button,input,textarea,select{font-family:inherit}
-#app{display:flex;flex-direction:column;height:100%}
-#titlebar{height:var(--title-h);min-height:var(--title-h);background:#0c0c18;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 10px;flex-shrink:0}
-#brandlink{display:flex;align-items:center;flex:1;min-width:0;text-decoration:none;color:inherit}
-#tl-logo{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.12em;color:#fff;white-space:nowrap}
-#tl-logo .hash{color:var(--purple)}
-#tl-tag{font-size:10px;font-weight:600;color:#c5c5ea;letter-spacing:.04em;margin-left:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-#tl-links{display:flex;gap:8px;align-items:center;flex-shrink:0;margin-left:10px}
-.tl-a{font-size:10px;color:#b8b8e0;text-decoration:none;border:1px solid var(--border);border-radius:6px;padding:4px 7px;background:rgba(255,255,255,.04);white-space:nowrap}
-.tl-a:hover{background:#18182a;color:#fff}
-#modebar{display:flex;align-items:center;gap:6px;padding:7px 8px;background:#0f0f1b;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto}
-.modebtn,.action{border:1px solid var(--border);background:var(--surface);color:var(--muted);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer}
-.modebtn.active{background:#201532;color:#fff;border-color:#56358e;box-shadow:0 0 14px rgba(166,115,255,.16)}
-.action{background:rgba(255,255,255,.08);color:var(--text)}
-.action:hover,.modebtn:hover{background:rgba(255,255,255,.15)}
-.action.primary{background:rgba(166,115,255,.22);border-color:#7048b0;color:#fff}
-#sharebar{margin-left:auto;display:flex;gap:6px}
-#main{display:flex;flex:1;min-height:0}
-#panel{width:var(--panel-w);max-width:45vw;min-width:330px;background:#0d0d16;border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0;z-index:600;position:relative}
-#mapwrap{flex:1;position:relative;min-width:0}
-#map{height:100%;width:100%}
-#map-darkener{position:absolute;inset:0;background:rgba(0,0,20,.32);pointer-events:none;z-index:300}
-.leaflet-control-attribution{font-size:9px!important;background:rgba(0,0,0,.65)!important;color:#555!important}
-.leaflet-control-attribution a{color:#666!important}
-.leaflet-control-zoom a{background:var(--surface)!important;color:var(--text)!important;border-color:var(--border)!important}
-#crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:800;width:40px;height:40px}
-#crosshair::before,#crosshair::after{content:'';position:absolute;background:var(--purple);opacity:.85}
-#crosshair::before{width:1.5px;height:100%;left:50%;top:0;transform:translateX(-50%)}
-#crosshair::after{height:1.5px;width:100%;top:50%;left:0;transform:translateY(-50%)}
-.ch-ring{position:absolute;width:10px;height:10px;border-radius:50%;border:1.5px solid var(--purple);opacity:.85;top:50%;left:50%;transform:translate(-50%,-50%)}
-.panel-head{padding:13px 14px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(166,115,255,.16),rgba(0,0,0,0))}
-.kicker{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#b59cff;font-weight:700}
-h1{font-size:22px;line-height:1.05;margin-top:4px;color:#fff}
-.sub{font-size:12px;color:var(--muted);line-height:1.35;margin-top:7px}
-.panel-body{padding:12px 12px 90px;overflow:auto;min-height:0;flex:1}
-.section{border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.035);padding:11px;margin-bottom:10px}
-.section-title{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;font-weight:800;color:#fff;margin-bottom:9px}
-.formrow{display:flex;gap:6px;margin-bottom:7px}
-.field{display:flex;flex-direction:column;gap:4px;margin-bottom:7px;flex:1}
-label{font-size:10px;color:#aaaad0;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
-input,textarea,select{width:100%;background:#090912;border:1px solid #2b2b42;border-radius:8px;color:var(--text);font-size:12px;padding:8px;outline:none}
-textarea{min-height:62px;resize:vertical;line-height:1.35}
-input:focus,textarea:focus,select:focus{border-color:#7048b0;box-shadow:0 0 0 2px rgba(166,115,255,.12)}
-.small{font-size:10px;color:#8888aa;line-height:1.35}
-.step-list{display:flex;flex-direction:column;gap:8px}
-.step{border:1px solid #2b2b42;border-radius:10px;background:#0a0a12;padding:9px;position:relative}
-.step-top{display:flex;align-items:center;gap:8px;margin-bottom:5px}
-.badge{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(166,115,255,.22);border:1px solid #7048b0;font-family:var(--mono);font-size:11px;color:#fff;flex-shrink:0}
-.st-title{font-size:13px;font-weight:800;color:#fff;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.st-code{font-family:var(--mono);font-size:11px;color:#d7c7ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.st-note{font-size:11px;color:#c7c7dd;line-height:1.35;margin-top:5px;white-space:pre-wrap}
-.st-actions{display:flex;gap:5px;margin-top:8px}
-.mini{border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--muted);border-radius:7px;padding:5px 7px;font-size:10px;font-weight:700;cursor:pointer}
-.mini:hover{background:rgba(255,255,255,.12);color:#fff}
-.empty{font-size:12px;color:#7f7fa0;line-height:1.4;padding:10px;border:1px dashed #30304a;border-radius:10px}
-#bottom-actions{position:absolute;left:0;right:0;bottom:0;padding:10px 12px;background:linear-gradient(to top,#0d0d16 80%,rgba(13,13,22,0));border-top:1px solid var(--border);display:flex;gap:7px;z-index:700}
-#bottom-actions .action{flex:1}
-.reader-card{display:none}
-body.reader-mode .builder{display:none}
-body.reader-mode .reader-card{display:block}
-.codeblock{background:#07070d;border:1px solid #24243a;border-radius:10px;padding:10px;font-family:var(--mono);font-size:11px;color:#d7c7ff;white-space:pre-wrap;word-break:break-word;line-height:1.45}
-#toast{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(8,8,16,.94);border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:11.5px;color:var(--text);font-family:var(--mono);z-index:900;pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}
-#toast.show{opacity:1}
-@media(max-width:780px){
-  #main{flex-direction:column-reverse}
-  #panel{width:100%;max-width:none;min-width:0;height:48%;border-right:none;border-top:1px solid var(--border)}
-  #mapwrap{height:52%;flex:none}
-  #tl-links .hide-sm{display:none}
-  #sharebar{margin-left:0}
-}
+:root{--bg:#090910;--panel:#111118;--panel2:#171723;--border:#2a2a40;--text:#eeeef8;--muted:#aaaad0;--purple:#a673ff;--amber:#ffbd4a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--ui:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:var(--ui);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0c0c18;border-bottom:1px solid var(--border)}
+.brand{font-family:var(--mono);font-weight:800;letter-spacing:.1em}.brand span{color:var(--purple)}
+.tag{font-size:11px;color:#c7c7e8;margin-left:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.head-left{display:flex;align-items:center;min-width:0}
+nav{display:flex;gap:8px}nav a,nav button{color:#c7c7e8;text-decoration:none;font-size:12px;border:1px solid var(--border);border-radius:7px;padding:5px 8px;background:rgba(255,255,255,.04);font-weight:700;cursor:pointer}
+main{display:grid;grid-template-columns:420px 1fr;min-height:0;flex:1}
+aside{background:#0d0d16;border-right:1px solid var(--border);min-height:0;overflow:auto;padding:14px 14px 90px;position:relative}
+.map{position:relative;background:radial-gradient(circle at 50% 40%,#222244,#08080d 65%);display:flex;align-items:center;justify-content:center;color:#7777a0;font-family:var(--mono);font-size:13px;text-align:center;padding:20px}
+.cross{position:absolute;top:50%;left:50%;width:44px;height:44px;transform:translate(-50%,-50%);opacity:.9}
+.cross:before,.cross:after{content:"";position:absolute;background:var(--purple)}.cross:before{width:2px;height:44px;left:21px}.cross:after{height:2px;width:44px;top:21px}
+h1{font-size:26px;line-height:1.05;margin:6px 0 8px}.kicker{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#c8b5ff;font-weight:800}.sub{font-size:13px;color:var(--muted);line-height:1.4;margin-bottom:14px}
+.card{border:1px solid var(--border);background:rgba(255,255,255,.035);border-radius:14px;padding:12px;margin-bottom:12px}
+.card h2{font-size:13px;margin:0 0 10px}.row{display:flex;gap:8px}.field{margin-bottom:9px;flex:1}label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#aaaad0;font-weight:800;margin-bottom:4px}
+input,select,textarea{width:100%;border:1px solid #30304b;background:#090912;color:var(--text);border-radius:9px;padding:8px;font-family:var(--ui);font-size:13px}textarea{min-height:62px;resize:vertical}
+button{border:1px solid var(--border);border-radius:9px;background:rgba(255,255,255,.07);color:var(--text);font-weight:800;font-size:12px;padding:8px 10px;cursor:pointer}button.primary{background:rgba(166,115,255,.22);border-color:#7048b0}
+.help{font-size:11px;color:#8e8eb0;line-height:1.4;margin-top:7px}
+.code{font-family:var(--mono);font-size:14px;line-height:1.45;word-break:break-word;white-space:pre-wrap;background:#07070d;border:1px solid #282840;border-radius:10px;padding:10px;color:#f1e8ff}
+.step{border:1px solid #30304b;background:#0a0a12;border-radius:11px;padding:9px;margin-bottom:8px}
+.step-top{display:flex;align-items:center;gap:8px}.num{width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(166,115,255,.2);border:1px solid #7048b0;font-family:var(--mono);font-size:11px}.st-title{font-weight:850}.st-token{font-family:var(--mono);font-size:12px;color:#d7c7ff;margin-top:2px}.note{font-size:12px;color:#cfcfe8;margin-top:6px;line-height:1.35;white-space:pre-wrap}.minirow{display:flex;gap:5px;margin-top:8px}.mini{font-size:10px;padding:5px 7px;color:#bbbbd8}
+.empty{border:1px dashed #30304b;border-radius:11px;padding:10px;color:#8888aa;font-size:12px}
+.actions{position:absolute;bottom:0;left:0;right:0;padding:11px 14px;display:flex;gap:8px;background:#0d0d16;border-top:1px solid var(--border)}.actions button{flex:1}
+.modebar{display:flex;gap:7px;margin-bottom:12px}.modebar button.active{background:#201532;color:#fff;border-color:#56358e}
+.reader{display:none}body.read .builder{display:none}body.read .reader{display:block}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#090912;border:1px solid var(--border);border-radius:9px;padding:8px 14px;font-family:var(--mono);font-size:12px;opacity:0;transition:.2s;pointer-events:none;z-index:11000}.toast.show{opacity:1}
+
+/* Inline first-run walkthrough */
+.walkthrough{position:fixed;inset:0;background:rgba(0,0,15,.74);display:none;align-items:center;justify-content:center;z-index:10000;padding:20px;backdrop-filter:blur(3px)}
+.walkthrough.show{display:flex}
+.walk-card{width:min(440px,100%);background:#111118;border:1px solid #2a2a40;border-radius:16px;padding:18px;box-shadow:0 22px 70px rgba(0,0,0,.5)}
+.walk-kicker{color:#a673ff;font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px}
+.walk-card h2{margin:0 0 8px;font-size:23px;line-height:1.08}
+.walk-card p{color:#cfcfe8;line-height:1.45;margin:0 0 14px;font-size:14px}
+.walk-code{font-family:var(--mono);font-size:13px;background:#07070d;border:1px solid #282840;border-radius:10px;padding:10px;color:#f1e8ff;margin:10px 0 14px;white-space:pre-wrap;word-break:break-word}
+.walk-progress{display:flex;gap:5px;margin:8px 0 14px}
+.dot{width:7px;height:7px;border-radius:50%;background:#3a3a55}.dot.active{background:#a673ff}
+.walk-actions{display:flex;gap:8px;justify-content:flex-end}
+.walk-actions button{min-width:76px}
+@media(max-width:820px){main{grid-template-columns:1fr;grid-template-rows:1fr 50vh}aside{grid-row:2;border-right:0;border-top:1px solid var(--border)}.map{grid-row:1}nav a.hide{display:none}.tag{display:none}}
 </style>
 </head>
 <body>
-<div id="app">
-  <div id="titlebar">
-    <a id="brandlink" href="https://github.com/mchannon/hashpath/blob/main/README.md" target="_blank" rel="noopener">
-      <div id="tl-logo"><span class="hash">#</span>hashpath</div>
-      <span id="tl-tag">getting directions is solved · giving directions still sucks</span>
-    </a>
-    <div id="tl-links">
-      <a class="tl-a hide-sm" href="https://hashsite.org" target="_blank" rel="noopener">Hashsite</a>
-      <a class="tl-a" href="https://github.com/mchannon/hashpath" target="_blank" rel="noopener">GitHub</a>
-    </div>
-  </div>
+<header>
+  <div class="head-left"><div class="brand"><span>#</span>hashpath</div><div class="tag">getting directions is solved · giving directions still sucks</div></div>
+  <nav><a class="hide" href="https://hashsite.org">Hashsite</a><a href="docs/01-WHY-HASHPATH.md">Docs</a><button type="button" onclick="showWalkthrough(true)">Walkthrough</button><a href="https://github.com/mchannon/hashpath">GitHub</a></nav>
+</header>
 
-  <div id="modebar">
-    <button class="modebtn active" id="mode-build" onclick="setMode('build')">Build path</button>
-    <button class="modebtn" id="mode-read" onclick="setMode('reader')">Reader preview</button>
-    <button class="modebtn" onclick="location.href='docs/01-WHY-HASHPATH.md'">Docs</button>
-    <div id="sharebar">
-      <button class="action" onclick="useMapCenter()">Use map center</button>
-      <button class="action primary" onclick="copyHashpath()">Copy</button>
-    </div>
-  </div>
+<main>
+  <aside>
+    <div class="kicker">Hashpath app mode</div>
+    <h1>Build an arrival</h1>
+    <div class="sub">A Hashpath starts with <b>#</b> and a first Hashsite point, then adds lowercase primitives and uppercase alphadecimal suffixes/payloads.</div>
+    <div class="modebar"><button id="bBuild" class="active" onclick="mode('build')">Build</button><button id="bRead" onclick="mode('read')">Reader preview</button></div>
 
-  <div id="main">
-    <aside id="panel">
-      <div class="panel-head">
-        <div class="kicker">Hashpath app mode</div>
-        <h1>Build an arrival</h1>
-        <div class="sub">Sequence the real-world details maps usually miss: gates, codes, parking, stairs, doors, warnings, and fallbacks.</div>
-      </div>
-
-      <div class="panel-body">
-        <div class="builder">
-          <div class="section">
-            <div class="section-title"><span>Add step</span><button class="mini" onclick="clearForm()">Clear</button></div>
-            <div class="formrow">
-              <div class="field" style="max-width:126px">
-                <label>Label</label>
-                <select id="step-label">
-                  <option value="gate">Gate</option>
-                  <option value="code">Code</option>
-                  <option value="parking">Parking</option>
-                  <option value="stairs">Stairs</option>
-                  <option value="elevator">Elevator</option>
-                  <option value="door">Door</option>
-                  <option value="dropoff">Dropoff</option>
-                  <option value="pickup">Pickup</option>
-                  <option value="warning">Warning</option>
-                  <option value="fallback">Fallback</option>
-                  <option value="note">Note</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>Hashsite / lat,lon / place</label>
-                <input id="step-location" placeholder="#7BGPSDMUT or 35.08,-106.65">
-              </div>
-            </div>
-            <div class="field">
-              <label>Instruction</label>
-              <textarea id="step-note" placeholder="Use west gate. Enter 4729#. Park behind Building C. Door is upstairs."></textarea>
-            </div>
-            <div class="formrow">
-              <button class="action primary" onclick="addStep()">Add step</button>
-              <button class="action" onclick="addCurrentLocationStep()">Add current GPS</button>
-            </div>
-            <div class="small">Starter surface: Hashpath is its own app/product while staying compatible with Hashsite-style points.</div>
+    <section class="builder">
+      <div class="card">
+        <h2>Add segment</h2>
+        <div class="row">
+          <div class="field" style="max-width:135px">
+            <label>Primitive</label>
+            <select id="prim">
+              <option value="">First point</option><option value="g">g gate</option><option value="c">c code</option><option value="p">p parking</option><option value="s">s stairs</option><option value="e">e elevator</option><option value="d">d door</option><option value="x">x dropoff</option><option value="u">u pickup</option><option value="w">w warning</option><option value="f">f fallback</option><option value="n">n note</option>
+            </select>
           </div>
-
-          <div class="section">
-            <div class="section-title"><span>Steps</span><button class="mini" onclick="clearSteps()">Clear all</button></div>
-            <div id="steps" class="step-list"><div class="empty">No steps yet. Add a gate, parking spot, access code, door, or warning.</div></div>
-          </div>
-
-          <div class="section">
-            <div class="section-title">Generated object</div>
-            <div id="generated" class="codeblock"></div>
+          <div class="field">
+            <label>Hashsite / suffix / payload</label>
+            <input id="payload" placeholder="First: #7BGPSDMUT · Later: FCDC or 4729">
           </div>
         </div>
-
-        <div class="reader-card">
-          <div class="section">
-            <div class="section-title">Recipient view</div>
-            <div class="small">Ordered, readable, actionable arrival instructions.</div>
-          </div>
-          <div id="reader-steps" class="step-list"></div>
-        </div>
+        <div class="field"><label>Human note</label><textarea id="note" placeholder="Optional note: west gate, park here, upstairs door, etc."></textarea></div>
+        <div class="row"><button class="primary" onclick="addSeg()">Add segment</button><button onclick="useCenter()">Use map center</button></div>
+        <div class="help">Human notes appear in preview only. They are not crammed into the compact Hashpath string.</div>
       </div>
 
-      <div id="bottom-actions">
-        <button class="action" onclick="previewReader()">Preview</button>
-        <button class="action" onclick="shareHashpath()">Text/share</button>
-        <button class="action primary" onclick="copyHashpath()">Copy</button>
-      </div>
-    </aside>
+      <div class="card"><h2>Segments</h2><div id="segments" class="empty">No segments yet. First segment should be a full Hashsite such as <code>#7BGPSDMUT</code>.</div></div>
+      <div class="card"><h2>Generated Hashpath</h2><div id="out" class="code"></div><div class="help">Shape: <code>#FIRSTPOINTpPARKsSTAIRSdDOOR</code>. No JSON blob.</div></div>
+    </section>
 
-    <div id="mapwrap">
-      <div id="map"></div>
-      <div id="map-darkener"></div>
-      <div id="crosshair"><div class="ch-ring"></div></div>
-      <div id="toast"></div>
+    <section class="reader">
+      <div class="card"><h2>Recipient view</h2><div id="readOut" class="code"></div></div>
+      <div class="card"><h2>Steps</h2><div id="readSegs"></div></div>
+    </section>
+
+    <div class="actions"><button onclick="mode('read')">Preview</button><button onclick="sharePath()">Text/share</button><button class="primary" onclick="copyPath()">Copy</button></div>
+  </aside>
+
+  <div class="map"><div><b>Map surface placeholder</b><br><br>Click “Use map center” for a deterministic Hashsite-looking placeholder until the real Hashsite codec is imported.</div><div class="cross"></div></div>
+</main>
+
+<div id="walkthrough" class="walkthrough" role="dialog" aria-modal="true" aria-labelledby="walk-title">
+  <div class="walk-card">
+    <div class="walk-kicker">Hashpath in 20 seconds</div>
+    <h2 id="walk-title"></h2>
+    <p id="walk-body"></p>
+    <div id="walk-code" class="walk-code"></div>
+    <div id="walk-progress" class="walk-progress"></div>
+    <div class="walk-actions">
+      <button type="button" onclick="skipWalkthrough()">Skip</button>
+      <button type="button" id="walk-primary" class="primary" onclick="nextWalkthrough()">Next</button>
     </div>
   </div>
 </div>
 
-<script>
-const APP_PRODUCT = 'hashpath';
-const DEFAULT_MODE = 'path';
-let map, userMarker = null, selectedMarker = null, selectedLL = null, currentLL = null, steps = [];
+<div id="toast" class="toast"></div>
 
-function initMap(){
-  map = L.map('map', {zoomControl:true, worldCopyJump:true}).setView([35.0844,-106.6504], 12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:21, attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
-  map.on('click', e => setSelected(e.latlng.lat, e.latlng.lng));
-  map.on('moveend', () => { selectedLL = map.getCenter(); });
-  selectedLL = map.getCenter();
-  renderGenerated();
-  tryGeolocate();
+<script>
+const CHARS='0123456789ABCDEFGHIJKLMNPQRSTUVWXYZ'; // no O in generated placeholders; typed O displays as o
+let segs=[];
+
+/* Inline walkthrough persistence */
+const WALKTHROUGH_KEY='hashpath.walkthrough.seen.v1';
+const WALKTHROUGH_STEPS=[
+  {title:'Hashpath is not just a pin.',body:'A pin says where. A Hashpath says how to actually arrive: gate, code, parking, stairs, door, warning, fallback.',code:'#7BGPSDMUTc4729pFCDCsEN4Ld1T^2'},
+  {title:'Start with a real point.',body:'The first segment begins with # and a Hashsite-style point. That first point is the anchor for the arrival procedure.',code:'#7BGPSDMUT'},
+  {title:'Add primitives.',body:'Lowercase primitives describe what each next segment means: p parking, c code, s stairs, d door, w warning, f fallback.',code:'#7BGPSDMUTc4729pFCDCsEN4Ld1T^2'},
+  {title:'Preview before sending.',body:'The compact Hashpath string is for copying and sharing. The reader preview is for humans following the actual arrival steps.',code:'1. Gate #7BGPSDMUT\\n2. Code c4729\\n3. Parking pFCDC\\n4. Stairs sEN4L\\n5. Door d1T^2'}
+];
+
+function code(s){return s}
+
+let walkIndex=0;
+function hasSeenWalkthrough(){try{return localStorage.getItem(WALKTHROUGH_KEY)==='true'}catch(e){return false}}
+function markWalkthroughSeen(){try{localStorage.setItem(WALKTHROUGH_KEY,'true')}catch(e){}}
+function showWalkthrough(force=false){
+  if(!force && hasSeenWalkthrough())return;
+  walkIndex=0;
+  renderWalkthrough();
+  document.getElementById('walkthrough').classList.add('show');
 }
-function tryGeolocate(){
-  if (!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(pos => {
-    const lat = pos.coords.latitude, lon = pos.coords.longitude;
-    currentLL = {lat, lon};
-    if (!userMarker) {
-      userMarker = L.circleMarker([lat,lon], {radius:7,color:'#3a8fff',fillColor:'#3a8fff',fillOpacity:.85,weight:2}).addTo(map).bindTooltip('Current location');
-      map.setView([lat,lon], 15);
-    } else userMarker.setLatLng([lat,lon]);
-  }, () => {}, {enableHighAccuracy:true, timeout:6000, maximumAge:30000});
+function renderWalkthrough(){
+  const s=WALKTHROUGH_STEPS[walkIndex];
+  document.getElementById('walk-title').textContent=s.title;
+  document.getElementById('walk-body').textContent=s.body;
+  document.getElementById('walk-code').textContent=s.code || '';
+  document.getElementById('walk-primary').textContent=walkIndex===WALKTHROUGH_STEPS.length-1?'Done':'Next';
+  document.getElementById('walk-progress').innerHTML=WALKTHROUGH_STEPS.map((_,i)=>`<span class="dot ${i===walkIndex?'active':''}"></span>`).join('');
 }
-function setSelected(lat, lon){
-  selectedLL = {lat, lon};
-  if (!selectedMarker) selectedMarker = L.circleMarker([lat,lon], {radius:8,color:'#a673ff',fillColor:'#a673ff',fillOpacity:.86,weight:2}).addTo(map).bindTooltip('Selected Hashpath step point');
-  else selectedMarker.setLatLng([lat,lon]);
-  document.getElementById('step-location').value = fmtLLBare(lat, lon);
+function nextWalkthrough(){
+  if(walkIndex<WALKTHROUGH_STEPS.length-1){walkIndex++;renderWalkthrough();return}
+  closeWalkthrough();
 }
-function useMapCenter(){ const c = map.getCenter(); setSelected(c.lat, c.lng); toast('Map center loaded'); }
-function addCurrentLocationStep(){
-  if (!currentLL) { toast('No GPS fix yet'); tryGeolocate(); return; }
-  document.getElementById('step-location').value = fmtLLBare(currentLL.lat, currentLL.lon);
-  addStep();
+function skipWalkthrough(){closeWalkthrough()}
+function closeWalkthrough(){
+  markWalkthroughSeen();
+  document.getElementById('walkthrough').classList.remove('show');
 }
-function parseLatLon(s){
-  const dec = String(s||'').trim().match(/^\s*(-?\d+(?:\.\d+)?)\s*[,\s]\s*(-?\d+(?:\.\d+)?)\s*$/);
-  if (!dec) return null;
-  const lat = parseFloat(dec[1]), lon = parseFloat(dec[2]);
-  if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) return {lat, lon};
-  return null;
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('walkthrough').classList.contains('show'))closeWalkthrough()});
+
+/* Hashpath builder */
+function cleanFirst(s){s=(s||'').trim().replace(/\s+/g,'').toUpperCase().replace(/O/g,'o'); if(!s)return''; return s.startsWith('#')?s:'#'+s}
+function cleanPayload(s){return (s||'').trim().replace(/\s+/g,'').toUpperCase().replace(/O/g,'o').replace(/^#+/,'')}
+function notePayload(s){s=(s||'').toUpperCase().replace(/O/g,'o').replace(/[^0-9A-Z]/g,'');return s.slice(0,8)||'NOTE'}
+function fakeHash(){let x=Date.now()>>>0,out='';for(let i=0;i<9;i++){x=(x*1103515245+12345+i*97)>>>0;out+=CHARS[x%CHARS.length]}return'#'+out}
+function addSeg(){
+  let prim=document.getElementById('prim').value, raw=document.getElementById('payload').value, note=document.getElementById('note').value.trim();
+  if(!raw.trim()&&!note){toast('Add a Hashsite, suffix, payload, or note');return}
+  let token='';
+  if(segs.length===0){token=cleanFirst(raw||fakeHash())}
+  else{token=(prim||'n')+cleanPayload(raw||notePayload(note))}
+  segs.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),prim:prim||'first',token,note});
+  document.getElementById('payload').value='';document.getElementById('note').value='';
+  render();toast('Segment added')
 }
-function addStep(){
-  const label = document.getElementById('step-label').value;
-  const loc = document.getElementById('step-location').value.trim();
-  const note = document.getElementById('step-note').value.trim();
-  if (!loc && !note) { toast('Add a location or instruction'); return; }
-  const ll = parseLatLon(loc);
-  const step = {id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), label, location:loc||null, lat:ll?ll.lat:null, lon:ll?ll.lon:null, note:note||null};
-  steps.push(step);
-  if (ll) L.circleMarker([ll.lat,ll.lon], {radius:7,color:'#ffbd4a',fillColor:'#ffbd4a',fillOpacity:.84,weight:2}).addTo(map).bindTooltip(label);
-  renderSteps(); renderGenerated(); clearForm(); toast('Step added');
+function useCenter(){document.getElementById('payload').value=fakeHash();toast('Placeholder Hashsite inserted')}
+function path(){return segs.map(s=>s.token).join('')||'#FIRSTPOINTpPARKsSTAIRSdDOOR'}
+function title(p){return ({first:'First point',g:'Gate',c:'Code',p:'Parking',s:'Stairs',e:'Elevator',d:'Door',x:'Dropoff',u:'Pickup',w:'Warning',f:'Fallback',n:'Note'})[p]||'Segment'}
+function render(){
+  document.getElementById('out').textContent=path();document.getElementById('readOut').textContent=path();
+  if(!segs.length){document.getElementById('segments').className='empty';document.getElementById('segments').innerHTML='No segments yet. First segment should be a full Hashsite such as <code>#7BGPSDMUT</code>.';document.getElementById('readSegs').innerHTML='<div class="empty">No segments yet.</div>';return}
+  document.getElementById('segments').className='';
+  const html=segs.map((s,i)=>`<div class="step"><div class="step-top"><div class="num">${i+1}</div><div><div class="st-title">${esc(title(s.prim))}</div><div class="st-token">${esc(s.token)}</div></div></div>${s.note?`<div class="note">${esc(s.note)}</div>`:''}<div class="minirow"><button class="mini" onclick="up('${s.id}')">↑</button><button class="mini" onclick="down('${s.id}')">↓</button><button class="mini" onclick="del('${s.id}')">Remove</button></div></div>`).join('');
+  document.getElementById('segments').innerHTML=html;
+  document.getElementById('readSegs').innerHTML=segs.map((s,i)=>`<div class="step"><div class="step-top"><div class="num">${i+1}</div><div><div class="st-title">${esc(title(s.prim))}</div><div class="st-token">${esc(s.token)}</div></div></div>${s.note?`<div class="note">${esc(s.note)}</div>`:''}</div>`).join('');
 }
-function removeStep(id){ steps = steps.filter(s => s.id !== id); renderSteps(); renderGenerated(); }
-function moveStep(id, dir){
-  const i = steps.findIndex(s => s.id === id), j = i + dir;
-  if (i < 0 || j < 0 || j >= steps.length) return;
-  const tmp = steps[i]; steps[i] = steps[j]; steps[j] = tmp;
-  renderSteps(); renderGenerated();
-}
-function clearSteps(){ if (!steps.length) return; if (!confirm('Clear all Hashpath steps?')) return; steps=[]; renderSteps(); renderGenerated(); }
-function clearForm(){ document.getElementById('step-location').value=''; document.getElementById('step-note').value=''; }
-function renderSteps(){
-  const el = document.getElementById('steps'), reader = document.getElementById('reader-steps');
-  if (!steps.length) {
-    el.innerHTML = '<div class="empty">No steps yet. Add a gate, parking spot, access code, door, or warning.</div>';
-    reader.innerHTML = '<div class="empty">No arrival steps yet.</div>';
-    return;
-  }
-  el.innerHTML = steps.map((s,i)=>stepHTML(s,i,true)).join('');
-  reader.innerHTML = steps.map((s,i)=>stepHTML(s,i,false)).join('');
-}
-function stepHTML(s,i,editable){
-  const title = labelTitle(s.label), code = s.location ? escapeHTML(s.location) : 'instruction only';
-  const note = s.note ? `<div class="st-note">${escapeHTML(s.note)}</div>` : '';
-  const actions = editable ? `<div class="st-actions">
-    <button class="mini" onclick="moveStep('${s.id}',-1)">↑</button>
-    <button class="mini" onclick="moveStep('${s.id}',1)">↓</button>
-    <button class="mini" onclick="removeStep('${s.id}')">Remove</button>
-    ${s.lat!==null ? `<button class="mini" onclick="flyTo(${s.lat},${s.lon})">Map</button>` : ''}
-  </div>` : (s.lat!==null ? `<div class="st-actions"><button class="mini" onclick="flyTo(${s.lat},${s.lon})">Open on map</button></div>` : '');
-  return `<div class="step"><div class="step-top"><div class="badge">${i+1}</div><div style="min-width:0;flex:1"><div class="st-title">${escapeHTML(title)}</div><div class="st-code">${code}</div></div></div>${note}${actions}</div>`;
-}
-function renderGenerated(){
-  const obj = {product:'hashpath', version:1, created:new Date().toISOString(), steps:steps.map(({id,...rest})=>rest)};
-  const compact = 'hashpath:' + btoa(unescape(encodeURIComponent(JSON.stringify(obj)))).replace(/=+$/,'');
-  document.getElementById('generated').textContent = steps.length ? compact + '\n\n' + readablePath() : 'Add steps to generate a Hashpath starter object.';
-}
-function readablePath(){
-  return steps.map((s,i)=>`${i+1}. ${labelTitle(s.label)}${s.location?' @ '+s.location:''}${s.note?' — '+s.note:''}`).join('\n');
-}
-function copyHashpath(){ copyText(steps.length ? document.getElementById('generated').textContent : 'https://hashpath.org'); }
-function shareHashpath(){
-  const text = steps.length ? document.getElementById('generated').textContent : 'https://hashpath.org';
-  if (navigator.share) navigator.share({title:'Hashpath arrival instructions', text}).catch(()=>copyText(text));
-  else copyText(text);
-}
-function previewReader(){ setMode('reader'); }
-function setMode(mode){
-  const reader = mode === 'reader';
-  document.body.classList.toggle('reader-mode', reader);
-  document.getElementById('mode-build').classList.toggle('active', !reader);
-  document.getElementById('mode-read').classList.toggle('active', reader);
-  renderSteps();
-}
-function flyTo(lat,lon){ map.setView([lat,lon],18); }
-function fmtLLBare(lat,lon){ return `${lat.toFixed(6)}, ${lon.toFixed(6)}`; }
-function labelTitle(label){ return ({gate:'Gate',code:'Access code',parking:'Parking',stairs:'Stairs',elevator:'Elevator',door:'Door',dropoff:'Dropoff',pickup:'Pickup',warning:'Warning',fallback:'Fallback',note:'Note'})[label] || label; }
-function copyText(t){
-  navigator.clipboard.writeText(t).then(()=>toast('Copied')).catch(()=>{
-    const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast('Copied');
-  });
-}
-function toast(msg,dur=2200){
-  const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
-  clearTimeout(window.toastTmr); window.toastTmr=setTimeout(()=>el.classList.remove('show'),dur);
-}
-function escapeHTML(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-window.addEventListener('load', initMap);
+function del(id){segs=segs.filter(s=>s.id!==id);render()}
+function move(id,d){let i=segs.findIndex(s=>s.id===id),j=i+d;if(i<0||j<0||j>=segs.length)return;[segs[i],segs[j]]=[segs[j],segs[i]];render()}
+function up(id){move(id,-1)}function down(id){move(id,1)}
+function mode(m){document.body.classList.toggle('read',m==='read');document.getElementById('bBuild').classList.toggle('active',m!=='read');document.getElementById('bRead').classList.toggle('active',m==='read');render()}
+function copyPath(){navigator.clipboard.writeText(path()).then(()=>toast('Copied')).catch(()=>toast('Copy failed'))}
+function sharePath(){const t=path()+('\n\n'+segs.map((s,i)=>`${i+1}. ${title(s.prim)} ${s.token}${s.note?' — '+s.note:''}`).join('\n')); if(navigator.share)navigator.share({title:'Hashpath',text:t}).catch(()=>copyPath());else navigator.clipboard.writeText(t).then(()=>toast('Copied'))}
+function toast(s){let e=document.getElementById('toast');e.textContent=s;e.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>e.classList.remove('show'),2000)}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+render();
+window.addEventListener('load',()=>showWalkthrough(false));
 </script>
 </body>
 </html>
