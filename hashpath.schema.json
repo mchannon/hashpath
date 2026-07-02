@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hashpath.org/hashpath.schema.json",
+  "title": "Hashpath Draft Object",
+  "description": "Draft structured representation of a Hashpath before compact serialization.",
+  "type": "object",
+  "properties": {
+    "anchor": {
+      "type": "string",
+      "description": "Full starting Hashsite."
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "hashsite": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "token",
+          "role"
+        ]
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "missingInformation": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "anchor",
+    "steps"
+  ]
+}
