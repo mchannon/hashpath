@@ -4,7 +4,7 @@ import sys
 
 src = Path("index.hashpath-starter.html")
 dst = Path("index.html")
-backup = Path("index.before-hashpath-app-v3.bak.html")
+backup = Path("index.before-hashpath-app-v4.bak.html")
 
 if not src.exists():
     print("ERROR: index.hashpath-starter.html not found. Copy it to the repo root first.", file=sys.stderr)
@@ -15,4 +15,4 @@ if dst.exists() and not backup.exists():
     print(f"Backed up existing index.html to {backup}")
 
 dst.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
-print("Installed Hashpath app-mode starter v3 with inline walkthrough as index.html.")
+print("Installed Hashpath app-mode starter v4 with map + dismissable walkthrough as index.html.")
