@@ -49,7 +49,7 @@ button{border:1px solid var(--border);border-radius:9px;background:rgba(255,255,
         <button onclick="sharePath()">📲 Text/share</button>
         <button class="primary" onclick="copyPath()">📋 Copy</button>
       </div>
-      <div class="help">Map clicks encode real Hashsites. Display length follows zoom; hidden full-depth anchors are used for follow-on suffix math. Example: <code>#7BGPSDMUTc4729pFCDCsEN4Ld1T^2</code></div>
+      <div class="help">Map clicks encode real Hashsites. Crosshair/map center is used if you add a mappable segment with an empty input. Hidden infill is serialized when follow-on suffixes need it. Example: <code>#7BGPSDMUTc4729pFCDCsEN4Ld1T^2</code></div>
     </div>
 
     <section class="builder">
@@ -174,6 +174,47 @@ function visibleToHiddenFull(rawVisible, rawHidden){
   if(h && codeBody(h).startsWith(codeBody(v))) return {visible:v, hidden:h};
   return {visible:v, hidden:v};
 }
+
+function isMappablePrimitive(p){
+  // c/code, w/warning, n/note are usually payload-only; the others can reasonably use the map center.
+  return p==='' || ['g','p','s','e','d','x','u','f'].includes(p);
+}
+function encodeMapCenterIntoForm(){
+  if(!map) return false;
+  const c=map.getCenter();
+  setEncodedPoint(c.lat,c.lng,false);
+  return true;
+}
+function codeLen(code){return codeBody(code).length}
+function expandVisibleFromHidden(visible, hidden, requiredLen){
+  const v=cleanFull(visible), h=cleanFull(hidden);
+  if(!v) return '';
+  if(!h || !codeBody(h).startsWith(codeBody(v))) return v;
+  const body=codeBody(h);
+  const n=Math.max(codeBody(v).length, Math.min(requiredLen, body.length));
+  return '#'+body.slice(0,n)+codeAlt(h);
+}
+function requiredFirstAnchorLen(){
+  if(segs.length < 2) return 0;
+  for(let i=1;i<segs.length;i++){
+    if(segs[i].hiddenFullCode) return codeLen(segs[i].hiddenFullCode);
+  }
+  return 0;
+}
+function serializedPath(){
+  if(!segs.length) return '';
+  const parts=[];
+  const first=segs[0];
+  const needed=requiredFirstAnchorLen();
+  if(first.hiddenFullCode && needed>codeLen(first.fullCode||first.token)){
+    parts.push(expandVisibleFromHidden(first.fullCode||first.token, first.hiddenFullCode, needed));
+  } else {
+    parts.push(first.token);
+  }
+  for(let i=1;i<segs.length;i++) parts.push(segs[i].token);
+  return parts.join('');
+}
+
 function payloadHiddenFull(){
   const p=document.getElementById('payload');
   return p && p.dataset ? (p.dataset.fullCode || '') : '';
@@ -207,6 +248,11 @@ function addSeg(){
   let ref=document.getElementById('mapref').value.trim();
   let hiddenCandidate=payloadHiddenFull();
 
+  if(!raw.trim() && isMappablePrimitive(prim) && encodeMapCenterIntoForm()){
+    raw=document.getElementById('payload').value;
+    ref=document.getElementById('mapref').value.trim();
+    hiddenCandidate=payloadHiddenFull();
+  }
   if(!raw.trim()&&!note){toast('Add a Hashsite, suffix, payload, or note');return}
 
   let token='', fullCode='', hiddenFullCode='';
@@ -236,7 +282,7 @@ function addSeg(){
 }
 function addSegmentMarker(ref,label){if(!map||!segLayer||!ref)return;const m=ref.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);if(!m)return;const lat=parseFloat(m[1]),lng=parseFloat(m[2]);L.marker([lat,lng],{icon:spheroidIcon('hp-red')}).addTo(segLayer).bindTooltip(label||'Added segment')}
 function clearForm(){document.getElementById('payload').value='';document.getElementById('note').value='';document.getElementById('mapref').value='';const p=document.getElementById('precisionref');if(p)p.value='';clearPayloadHidden()}
-function getPath(){return segs.length?segs.map(s=>s.token).join(''):''}
+function getPath(){return serializedPath()}
 function title(p){return({first:'First point',g:'Gate',c:'Code',p:'Parking',s:'Stairs',e:'Elevator',d:'Door',x:'Dropoff',u:'Pickup',w:'Warning',f:'Fallback',n:'Note'})[p]||'Segment'}
 function render(){
   const hp=getPath(),out=document.getElementById('out');
@@ -250,7 +296,10 @@ function render(){
   document.getElementById('segments').className='';
   document.getElementById('segments').innerHTML=segs.map((s,i)=>stepHtml(s,i,true)).join('');
 }
-function stepHtml(s,i,edit){return `<div class="step"><div class="step-top"><div class="num">${i+1}</div><div><div class="st-title">${esc(title(s.prim))}</div><div class="st-token">${esc(s.token)}</div></div></div>${s.fullCode&&s.fullCode!==s.token?`<div class="full">full ${esc(s.fullCode)}</div>`:''}${s.ref?`<div class="ref">${esc(s.ref)}</div>`:''}${s.note?`<div class="note">${esc(s.note)}</div>`:''}${edit?`<div class="minirow"><button class="mini" onclick="up('${s.id}')">↑</button><button class="mini" onclick="down('${s.id}')">↓</button><button class="mini" onclick="del('${s.id}')">Remove</button></div>`:''}</div>`}
+function stepHtml(s,i,edit){
+  const serializedFirst=(i===0 && segs.length)?serializedPath().match(/^#[0-9A-Zo]+(?:\^[-0-9A-Zo]+)?/)?.[0]:'';
+  return `<div class="step"><div class="step-top"><div class="num">${i+1}</div><div><div class="st-title">${esc(title(s.prim))}</div><div class="st-token">${esc(s.token)}</div></div></div>${i===0&&serializedFirst&&serializedFirst!==s.token?`<div class="full">serialized ${esc(serializedFirst)}</div>`:''}${s.fullCode&&s.fullCode!==s.token?`<div class="full">visible ${esc(s.fullCode)}</div>`:''}${s.hiddenFullCode&&s.hiddenFullCode!==s.fullCode?`<div class="full">hidden ${esc(s.hiddenFullCode)}</div>`:''}${s.ref?`<div class="ref">${esc(s.ref)}</div>`:''}${s.note?`<div class="note">${esc(s.note)}</div>`:''}${edit?`<div class="minirow"><button class="mini" onclick="up('${s.id}')">↑</button><button class="mini" onclick="down('${s.id}')">↓</button><button class="mini" onclick="del('${s.id}')">Remove</button></div>`:''}</div>`;
+}
 function del(id){segs=segs.filter(s=>s.id!==id);rebuildSegmentMarkers();render()}
 function rebuildSegmentMarkers(){if(!segLayer)return;segLayer.clearLayers();segs.forEach(s=>addSegmentMarker(s.ref,s.token))}
 function move(id,d){let i=segs.findIndex(s=>s.id===id),j=i+d;if(i<0||j<0||j>=segs.length)return;[segs[i],segs[j]]=[segs[j],segs[i]];render()}function up(id){move(id,-1)}function down(id){move(id,1)}
