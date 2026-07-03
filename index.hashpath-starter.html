@@ -8,55 +8,25 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
-:root{
-  --bg:#080912;--panel:#0b0c15;--border:#252943;--text:#eef2ff;--muted:#aeb6da;
-  --blue:#3a8fff;--green:#00d97e;--red:#ff4a3a;--purple:#a673ff;--amber:#ffbd4a;
-  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  --ui:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:var(--ui);overflow:hidden}
-body{display:flex;flex-direction:column}
+:root{--bg:#080912;--panel:#0b0c15;--border:#252943;--text:#eef2ff;--muted:#aeb6da;--blue:#3a8fff;--green:#00d97e;--red:#ff4a3a;--purple:#a673ff;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--ui:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:var(--ui);overflow:hidden}body{display:flex;flex-direction:column}
 header{height:42px;min-height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#090b18;border-bottom:1px solid var(--border)}
-.brand{font-family:var(--mono);font-weight:900;letter-spacing:.1em}.brand span{color:var(--green)}
-.tag{font-size:11px;color:#c7d4ff;margin-left:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.head-left{display:flex;align-items:center;min-width:0}
+.brand{font-family:var(--mono);font-weight:900;letter-spacing:.1em}.brand span{color:var(--green)}.tag{font-size:11px;color:#c7d4ff;margin-left:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.head-left{display:flex;align-items:center;min-width:0}
 nav{display:flex;gap:8px;align-items:center}nav a,nav button{color:#c7d4ff;text-decoration:none;font-size:12px;border:1px solid var(--border);border-radius:7px;padding:5px 8px;background:rgba(255,255,255,.04);font-weight:700;cursor:pointer}
-#main{height:calc(100vh - 42px);display:flex;min-height:0;width:100vw}
-#panel{width:430px;min-width:380px;max-width:48vw;background:var(--panel);border-right:1px solid var(--border);overflow:auto;padding:14px 14px 90px;position:relative}
-#mapcol{flex:1;min-width:320px;height:100%;position:relative;background:#07101b}
-#map{position:absolute;left:0;right:0;top:0;bottom:0;z-index:2;background:#07101b}
+#main{height:calc(100vh - 42px);display:flex;min-height:0;width:100vw}#panel{width:440px;min-width:390px;max-width:49vw;background:var(--panel);border-right:1px solid var(--border);overflow:auto;padding:14px 14px 90px;position:relative}
+#mapcol{flex:1;min-width:320px;height:100%;position:relative;background:#07101b}#map{position:absolute;inset:0;z-index:2;background:#07101b}
 #mapFallback{position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:#7c8db8;font-family:var(--mono);font-size:13px;background:radial-gradient(circle at 50% 40%,#13305a,#07101b 70%)}
 #mapError{position:absolute;left:12px;right:12px;top:12px;z-index:8;display:none;background:#170d12;border:1px solid #68413f;border-radius:10px;padding:10px;font-size:12px;color:#ffd9d5}
-.cross{position:absolute;top:50%;left:50%;width:42px;height:42px;transform:translate(-50%,-50%);z-index:7;pointer-events:none;opacity:.88}
-.cross:before,.cross:after{content:"";position:absolute;background:var(--green)}.cross:before{width:2px;height:42px;left:20px}.cross:after{height:2px;width:42px;top:20px}.ring{position:absolute;left:16px;top:16px;width:10px;height:10px;border:2px solid var(--green);border-radius:50%}
+.cross{position:absolute;top:50%;left:50%;width:42px;height:42px;transform:translate(-50%,-50%);z-index:7;pointer-events:none;opacity:.88}.cross:before,.cross:after{content:"";position:absolute;background:var(--green)}.cross:before{width:2px;height:42px;left:20px}.cross:after{height:2px;width:42px;top:20px}.ring{position:absolute;left:16px;top:16px;width:10px;height:10px;border:2px solid var(--green);border-radius:50%}
 .leaflet-container{background:#07101b}.leaflet-control-attribution{font-size:9px!important;background:rgba(0,0,0,.65)!important;color:#666!important}.leaflet-control-attribution a{color:#777!important}.leaflet-control-zoom a{background:#0b0c15!important;color:#eee!important;border-color:#252943!important}
-
-/* Gaussian shaded spheroid markers */
-.hp-spheroid{width:14px;height:14px;border-radius:50%;transform:translate(-7px,-7px);position:relative}
-.hp-spheroid:after{content:"";position:absolute;inset:-5px;border-radius:50%;filter:blur(5px);opacity:.55}
-.hp-blue{background:radial-gradient(circle at 32% 28%,#ffffff 0 8%,#b9dcff 12%,var(--blue) 42%,#0d3d8c 78%,#061d48 100%);box-shadow:0 0 13px rgba(58,143,255,.55)}
-.hp-blue:after{background:var(--blue)}
-.hp-green{background:radial-gradient(circle at 32% 28%,#ffffff 0 8%,#a4ffd5 12%,var(--green) 42%,#007f52 78%,#003826 100%);box-shadow:0 0 13px rgba(0,217,126,.56)}
-.hp-green:after{background:var(--green)}
-.hp-red{background:radial-gradient(circle at 32% 28%,#ffffff 0 8%,#ffc0ba 12%,var(--red) 42%,#a51d16 78%,#4a0d0a 100%);box-shadow:0 0 13px rgba(255,74,58,.58)}
-.hp-red:after{background:var(--red)}
-.hp-purple{background:radial-gradient(circle at 32% 28%,#ffffff 0 8%,#dfceff 12%,var(--purple) 42%,#5630a0 78%,#24114a 100%);box-shadow:0 0 13px rgba(166,115,255,.54)}
-.hp-purple:after{background:var(--purple)}
-
-h1{font-size:26px;line-height:1.05;margin:6px 0 8px}.kicker{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#71ffb7;font-weight:800}.sub{font-size:13px;color:var(--muted);line-height:1.4;margin-bottom:14px}
-.colorbar{display:flex;height:4px;border-radius:999px;overflow:hidden;margin:0 0 12px}.colorbar div:nth-child(1){background:var(--blue);flex:1}.colorbar div:nth-child(2){background:var(--green);flex:1}.colorbar div:nth-child(3){background:var(--red);flex:1}
+.hp-spheroid{width:14px;height:14px;border-radius:50%;transform:translate(-7px,-7px);position:relative}.hp-spheroid:after{content:"";position:absolute;inset:-5px;border-radius:50%;filter:blur(5px);opacity:.55}.hp-blue{background:radial-gradient(circle at 32% 28%,#fff 0 8%,#b9dcff 12%,var(--blue) 42%,#0d3d8c 78%,#061d48 100%);box-shadow:0 0 13px rgba(58,143,255,.55)}.hp-blue:after{background:var(--blue)}.hp-green{background:radial-gradient(circle at 32% 28%,#fff 0 8%,#a4ffd5 12%,var(--green) 42%,#007f52 78%,#003826 100%);box-shadow:0 0 13px rgba(0,217,126,.56)}.hp-green:after{background:var(--green)}.hp-red{background:radial-gradient(circle at 32% 28%,#fff 0 8%,#ffc0ba 12%,var(--red) 42%,#a51d16 78%,#4a0d0a 100%);box-shadow:0 0 13px rgba(255,74,58,.58)}.hp-red:after{background:var(--red)}.hp-purple{background:radial-gradient(circle at 32% 28%,#fff 0 8%,#dfceff 12%,var(--purple) 42%,#5630a0 78%,#24114a 100%);box-shadow:0 0 13px rgba(166,115,255,.54)}.hp-purple:after{background:var(--purple)}
+h1{font-size:26px;line-height:1.05;margin:6px 0 8px}.kicker{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#71ffb7;font-weight:800}.sub{font-size:13px;color:var(--muted);line-height:1.4;margin-bottom:14px}.colorbar{display:flex;height:4px;border-radius:999px;overflow:hidden;margin:0 0 12px}.colorbar div:nth-child(1){background:var(--blue);flex:1}.colorbar div:nth-child(2){background:var(--green);flex:1}.colorbar div:nth-child(3){background:var(--red);flex:1}
 .card{border:1px solid var(--border);background:rgba(255,255,255,.035);border-radius:14px;padding:12px;margin-bottom:12px}.card h2{font-size:13px;margin:0 0 10px}.row{display:flex;gap:8px}.field{margin-bottom:9px;flex:1}label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#adb7df;font-weight:800;margin-bottom:4px}
 input,select,textarea{width:100%;border:1px solid #303752;background:#080912;color:var(--text);border-radius:9px;padding:8px;font-family:var(--ui);font-size:13px}textarea{min-height:62px;resize:vertical}
 button{border:1px solid var(--border);border-radius:9px;background:rgba(255,255,255,.07);color:var(--text);font-weight:800;font-size:12px;padding:8px 10px;cursor:pointer}button.primary{background:rgba(0,217,126,.17);border-color:#087b51}button.blue{background:rgba(58,143,255,.17);border-color:#1f5ea5}button.red{background:rgba(255,74,58,.16);border-color:#8b2a24}
-.help{font-size:11px;color:#8e9abe;line-height:1.4;margin-top:7px}
-.code{font-family:var(--mono);font-size:14px;line-height:1.45;word-break:break-word;white-space:pre-wrap;background:#05070e;border:1px solid #26304b;border-radius:10px;padding:10px;color:#e9fff5;min-height:44px}
-.code.emptyOutput{color:#7e8bad}
-.step{border:1px solid #303752;background:#080912;border-radius:11px;padding:9px;margin-bottom:8px}.step-top{display:flex;align-items:center;gap:8px}.num{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff,#a4ffd5 20%,var(--green) 65%,#005036);border:1px solid #13b979;font-family:var(--mono);font-size:10px;color:#00170f}.st-title{font-weight:850}.st-token{font-family:var(--mono);font-size:12px;color:#d8fff0;margin-top:2px}.note,.ref{font-size:12px;color:#cbd5f1;margin-top:6px;line-height:1.35;white-space:pre-wrap}.ref{color:#8da0ca;font-family:var(--mono)}.minirow{display:flex;gap:5px;margin-top:8px}.mini{font-size:10px;padding:5px 7px;color:#bbbbd8}
-.empty{border:1px dashed #303752;border-radius:11px;padding:10px;color:#8995b7;font-size:12px}
-.actions{position:absolute;bottom:0;left:0;right:0;padding:11px 14px;display:flex;gap:8px;background:#0b0c15;border-top:1px solid var(--border)}.actions button{flex:1}
-.modebar{display:flex;gap:7px;margin-bottom:12px}.modebar button.active{background:#092418;color:#eafff6;border-color:#087b51}.reader{display:none}body.read .builder{display:none}body.read .reader{display:block}
-.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#080912;border:1px solid var(--border);border-radius:9px;padding:8px 14px;font-family:var(--mono);font-size:12px;opacity:0;transition:.2s;pointer-events:none;z-index:11000}.toast.show{opacity:1}
+.help{font-size:11px;color:#8e9abe;line-height:1.4;margin-top:7px}.code{font-family:var(--mono);font-size:14px;line-height:1.45;word-break:break-word;white-space:pre-wrap;background:#05070e;border:1px solid #26304b;border-radius:10px;padding:10px;color:#e9fff5;min-height:44px}.code.emptyOutput{color:#7e8bad}
+.step{border:1px solid #303752;background:#080912;border-radius:11px;padding:9px;margin-bottom:8px}.step-top{display:flex;align-items:center;gap:8px}.num{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff,#a4ffd5 20%,var(--green) 65%,#005036);border:1px solid #13b979;font-family:var(--mono);font-size:10px;color:#00170f}.st-title{font-weight:850}.st-token{font-family:var(--mono);font-size:12px;color:#d8fff0;margin-top:2px}.note,.ref,.full{font-size:12px;color:#cbd5f1;margin-top:6px;line-height:1.35;white-space:pre-wrap}.ref,.full{color:#8da0ca;font-family:var(--mono)}.minirow{display:flex;gap:5px;margin-top:8px}.mini{font-size:10px;padding:5px 7px;color:#bbbbd8}
+.empty{border:1px dashed #303752;border-radius:11px;padding:10px;color:#8995b7;font-size:12px}.actions{position:absolute;bottom:0;left:0;right:0;padding:11px 14px;display:flex;gap:8px;background:#0b0c15;border-top:1px solid var(--border)}.actions button{flex:1}.modebar{display:flex;gap:7px;margin-bottom:12px}.modebar button.active{background:#092418;color:#eafff6;border-color:#087b51}.reader{display:none}body.read .builder{display:none}body.read .reader{display:block}.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#080912;border:1px solid var(--border);border-radius:9px;padding:8px 14px;font-family:var(--mono);font-size:12px;opacity:0;transition:.2s;pointer-events:none;z-index:11000}.toast.show{opacity:1}
 .walkthrough{position:fixed;inset:0;background:rgba(0,0,15,.45);display:none;align-items:center;justify-content:center;z-index:10000;padding:20px;backdrop-filter:blur(2px)}.walkthrough.show{display:flex}.walk-card{width:min(430px,100%);background:#0b0c15;border:1px solid #26304b;border-radius:16px;padding:17px;box-shadow:0 20px 55px rgba(0,0,0,.42);position:relative}.walk-x{position:absolute;right:10px;top:10px;border:0;background:transparent;color:#9fa9ca;padding:5px 7px;font-size:18px;line-height:1}.walk-kicker{color:#71ffb7;font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px}.walk-card h2{margin:0 24px 8px 0;font-size:22px;line-height:1.08}.walk-card p{color:#cfd8f0;line-height:1.45;margin:0 0 14px;font-size:14px}.walk-code{font-family:var(--mono);font-size:13px;background:#05070e;border:1px solid #26304b;border-radius:10px;padding:10px;color:#e9fff5;margin:10px 0 14px;white-space:pre-wrap;word-break:break-word}.walk-progress{display:flex;gap:5px;margin:8px 0 14px}.dot{width:7px;height:7px;border-radius:50%;background:#33405c}.dot.active{background:#00d97e}.walk-actions{display:flex;gap:8px;justify-content:space-between;align-items:center}.walk-actions-right{display:flex;gap:8px}.walk-dismiss{color:#aeb6da;background:transparent;border-color:#303752}
 @media(max-width:820px){#main{flex-direction:column-reverse}#panel{width:100%;min-width:0;max-width:none;height:54%;border-right:0;border-top:1px solid var(--border)}#mapcol{height:46%;min-width:0;flex:none}.tag{display:none}nav a.hide{display:none}}
 </style>
@@ -72,7 +42,7 @@ button{border:1px solid var(--border);border-radius:9px;background:rgba(255,255,
     <div class="kicker">Hashpath app mode</div>
     <h1>Build an arrival</h1>
     <div class="colorbar"><div></div><div></div><div></div></div>
-    <div class="sub">Paste a real <b>#Hashsite</b> first. Map clicks provide location references only until the real Hashsite encoder is wired in.</div>
+    <div class="sub">Map clicks now call the inline Hashsite encoder. First point is a real <b>#Hashsite</b>; later mappable points become differential Hashpath suffixes.</div>
     <div class="modebar"><button id="bBuild" class="active" onclick="mode('build')">Build</button><button id="bRead" onclick="mode('read')">Reader preview</button></div>
 
     <section class="builder">
@@ -86,23 +56,21 @@ button{border:1px solid var(--border);border-radius:9px;background:rgba(255,255,
               <option value="g">g gate</option><option value="c">c code</option><option value="p">p parking</option><option value="s">s stairs</option><option value="e">e elevator</option><option value="d">d door</option><option value="x">x dropoff</option><option value="u">u pickup</option><option value="w">w warning</option><option value="f">f fallback</option><option value="n">n note</option>
             </select>
           </div>
-          <div class="field"><label>Hashsite / suffix / payload</label><input id="payload" placeholder="First: #7BGPSDMUT · Later: FCDC or 4729"></div>
+          <div class="field"><label>Hashsite / suffix / payload</label><input id="payload" placeholder="Click map for #Hashsite · code payload 4729 · suffix FCDC"></div>
         </div>
         <div class="field"><label>Human note</label><textarea id="note" placeholder="Optional note: west gate, park here, upstairs door, etc."></textarea></div>
-        <div class="field"><label>Map reference</label><input id="mapref" readonly placeholder="Click the map or use map center for lat/lon reference only"></div>
+        <div class="field"><label>Map reference</label><input id="mapref" readonly placeholder="Click map or use map center"></div>
         <div class="row"><button class="primary" onclick="addSeg()">Add segment</button><button class="blue" onclick="useMapCenter()">Use map center</button><button class="red" onclick="clearForm()">Clear</button></div>
-        <div class="help">No perverse random Hashsites. Until the real encoder is imported, the app will not pretend lat/lon is a Hashsite.</div>
+        <div class="help">Encoder sanity check: <code>35.222, -101.831, 9 → #7BA2CSoDZ</code>.</div>
       </div>
-
-      <div class="card"><h2>Segments</h2><div id="segments" class="empty">No segments yet. First segment should be a real Hashsite such as <code>#7BGPSDMUT</code>.</div></div>
-      <div class="card"><h2>Generated Hashpath</h2><div id="out" class="code emptyOutput"></div><div class="help">Expected shape after real input: <code>#7BGPSDMUTc4729pFCDCsEN4Ld1T^2</code></div></div>
+      <div class="card"><h2>Segments</h2><div id="segments" class="empty">No segments yet. Click the map or paste a first Hashsite such as <code>#7BGPSDMUT</code>.</div></div>
+      <div class="card"><h2>Generated Hashpath</h2><div id="out" class="code emptyOutput"></div><div class="help">Example shape: <code>#7BGPSDMUTc4729pFCDCsEN4Ld1T^2</code></div></div>
     </section>
 
     <section class="reader">
       <div class="card"><h2>Recipient view</h2><div id="readOut" class="code emptyOutput"></div></div>
       <div class="card"><h2>Steps</h2><div id="readSegs"></div></div>
     </section>
-
     <div class="actions"><button onclick="mode('read')">Preview</button><button onclick="sharePath()">Text/share</button><button class="primary" onclick="copyPath()">Copy</button></div>
   </aside>
 
@@ -118,136 +86,63 @@ button{border:1px solid var(--border);border-radius:9px;background:rgba(255,255,
   <div class="walk-card">
     <button class="walk-x" type="button" onclick="dismissWalkthrough()" aria-label="Dismiss walkthrough">×</button>
     <div class="walk-kicker">Hashpath in 20 seconds</div>
-    <h2 id="walk-title"></h2>
-    <p id="walk-body"></p>
-    <div id="walk-code" class="walk-code"></div>
-    <div id="walk-progress" class="walk-progress"></div>
-    <div class="walk-actions">
-      <button class="walk-dismiss" type="button" onclick="dismissWalkthrough()">Dismiss walkthrough</button>
-      <div class="walk-actions-right"><button type="button" onclick="skipWalkthrough()">Skip</button><button type="button" id="walk-primary" class="primary" onclick="nextWalkthrough()">Next</button></div>
-    </div>
+    <h2 id="walk-title"></h2><p id="walk-body"></p><div id="walk-code" class="walk-code"></div><div id="walk-progress" class="walk-progress"></div>
+    <div class="walk-actions"><button class="walk-dismiss" type="button" onclick="dismissWalkthrough()">Dismiss walkthrough</button><div class="walk-actions-right"><button type="button" onclick="skipWalkthrough()">Skip</button><button type="button" id="walk-primary" class="primary" onclick="nextWalkthrough()">Next</button></div></div>
   </div>
 </div>
-
 <div id="toast" class="toast"></div>
 
 <script>
+/* Inline JS port of the Hashsite C encoder: ll2hsps(), ll2a(), ll2b(), ll2n(). */
+const Hashsite=(()=>{const HS_MAXLEN=18,HS_POLAR_HEI=4.819,HS_LAT_POLAR=41.81,HS_LAT_MID=19.47,HS_EQ_WID=60/9;
+const northRows=[[6,30],[6,24],[5,19],[5,14],[4,10],[3,7],[3,4],[2,2],[1,1],[1,0]];
+const southRows=[[6,0],[6,6],[5,12],[5,17],[4,22],[3,26],[3,29],[2,32],[1,34],[1,35]];
+function hsEncode(n){if(n<0||n>35)return'?';if(n<10)return String.fromCharCode(48+n);if(n===24)return'o';return String.fromCharCode(55+n)}
+function hsDecode(c){const k=c.charCodeAt(0);if(k>=48&&k<=57)return k-48;if(k>=65&&k<=90)return k-55;if(k>=97&&k<=122)return k-87;return -1}
+function ll2a(lat,lon){let lonNorm=lon;while(lonNorm>180)lonNorm-=360;while(lonNorm<-180)lonNorm+=360;let x=lonNorm+180;let x1=Math.floor(x/60);if(x1>5)x1=5;let y1,hei,latOff;if(lat>HS_LAT_POLAR){y1=0;hei=90-HS_LAT_POLAR;latOff=90-lat}else if(lat>HS_LAT_MID){y1=1;hei=HS_LAT_POLAR-HS_LAT_MID;latOff=HS_LAT_POLAR-lat}else if(lat>0){y1=2;hei=HS_LAT_MID;latOff=HS_LAT_MID-lat}else if(lat>-HS_LAT_MID){y1=3;hei=HS_LAT_MID;latOff=-lat}else if(lat>-HS_LAT_POLAR){y1=4;hei=HS_LAT_POLAR-HS_LAT_MID;latOff=-HS_LAT_MID-lat}else{y1=5;hei=90-HS_LAT_POLAR;latOff=-HS_LAT_POLAR-lat}return{let:hsEncode(y1*6+x1),lat:latOff,lon:x-60*x1,wid:60,hei}}
+function polarColWidth(ncols){return 60/ncols}
+function northPolarSubdivide(latOffset,lonOffset){let y2=Math.floor(latOffset/HS_POLAR_HEI);if(y2>9)y2=9;const row=northRows[y2],ncols=row[0],base=row[1],wid=polarColWidth(ncols);let xa=Math.floor(lonOffset/wid);if(xa>=ncols)xa=ncols-1;const rem=latOffset-y2*HS_POLAR_HEI;return{let:hsEncode(base+xa),hei:HS_POLAR_HEI,wid,lat:HS_POLAR_HEI-rem,lon:lonOffset-xa*wid}}
+function southPolarSubdivide(latOffset,lonOffset){let y2=Math.floor(latOffset/HS_POLAR_HEI);if(y2>9)y2=9;const row=southRows[y2],ncols=row[0],base=row[1],wid=polarColWidth(ncols);let xa=Math.floor(lonOffset/wid);if(xa>=ncols)xa=ncols-1;return{let:hsEncode(base+xa),hei:HS_POLAR_HEI,wid,lat:latOffset-y2*HS_POLAR_HEI,lon:lonOffset-xa*wid}}
+function equatorialSubdivide(latOffset,lonOffset,bandHei){const rowHei=bandHei/4;let ya=Math.floor(latOffset/rowHei);if(ya>3)ya=3;let xa=Math.floor(lonOffset/HS_EQ_WID);if(xa>8)xa=8;return{let:hsEncode(xa+9*ya),hei:rowHei,wid:HS_EQ_WID,lat:latOffset-ya*rowHei,lon:lonOffset-xa*HS_EQ_WID}}
+function ll2b(input){const v=hsDecode(input.let),y1=Math.floor(v/6);if(y1===0)return northPolarSubdivide(input.hei-input.lat,input.lon);if(y1===5)return southPolarSubdivide(input.lat,input.lon);return equatorialSubdivide(input.lat,input.lon,input.hei)}
+function ll2n(input){const subWid=input.wid/6,subHei=input.hei/6;let xa=Math.floor(input.lon/subWid);if(xa>5)xa=5;let ya=Math.floor(input.lat/subHei);if(ya>5)ya=5;return{let:hsEncode(ya*6+xa),wid:subWid,hei:subHei,lat:input.lat-ya*subHei,lon:input.lon-xa*subWid}}
+function encode(lat,lon,nchars=9){lat=Number(lat);lon=Number(lon);if(!Number.isFinite(lat)||!Number.isFinite(lon))throw new Error('Invalid lat/lon');if(lat>90)lat=90;if(lat<-90)lat=-90;nchars=Math.max(1,Math.min(HS_MAXLEN,Math.floor(nchars||9)));const c1=ll2a(lat,lon);let out=c1.let;if(nchars===1)return'#'+out;let cn=ll2b(c1);out+=cn.let;for(let n=2;n<nchars;n++){cn=ll2n(cn);out+=cn.let}return'#'+out}
+return{encode,hsEncode,hsDecode};})();
+
 let segs=[], map=null, selectedLL={lat:35.0844,lng:-106.6504}, selectedMarker=null, currentMarker=null, segLayer=null;
-
-function spheroidIcon(colorClass){
-  return L.divIcon({className:'', html:`<div class="hp-spheroid ${colorClass}"></div>`, iconSize:[14,14], iconAnchor:[7,7]});
-}
-function initMap(){
-  const err=document.getElementById('mapError');
-  if(typeof L==='undefined'){err.style.display='block';return}
-  map=L.map('map',{zoomControl:true,worldCopyJump:true}).setView([35.0844,-106.6504],12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:21,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
-  segLayer=L.layerGroup().addTo(map);
-  map.whenReady(()=>{document.getElementById('mapFallback').style.display='none';forceMapSize();});
-  map.on('moveend',()=>{selectedLL=map.getCenter()});
-  map.on('click',e=>setReference(e.latlng.lat,e.latlng.lng,true));
-  forceMapSize();setTimeout(forceMapSize,200);setTimeout(forceMapSize,800);setTimeout(forceMapSize,1600);
-  if(navigator.geolocation){
-    navigator.geolocation.getCurrentPosition(pos=>{
-      const lat=pos.coords.latitude,lng=pos.coords.longitude;
-      currentMarker=L.marker([lat,lng],{icon:spheroidIcon('hp-blue')}).addTo(map).bindTooltip('Current location');
-      selectedLL={lat,lng};map.setView([lat,lng],15);
-    },()=>{}, {enableHighAccuracy:true,timeout:6000,maximumAge:30000});
-  }
-}
+function spheroidIcon(colorClass){return L.divIcon({className:'',html:`<div class="hp-spheroid ${colorClass}"></div>`,iconSize:[14,14],iconAnchor:[7,7]})}
+function initMap(){const err=document.getElementById('mapError');if(typeof L==='undefined'){err.style.display='block';return}map=L.map('map',{zoomControl:true,worldCopyJump:true}).setView([35.0844,-106.6504],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:21,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);segLayer=L.layerGroup().addTo(map);map.whenReady(()=>{document.getElementById('mapFallback').style.display='none';forceMapSize()});map.on('moveend',()=>{selectedLL=map.getCenter()});map.on('click',e=>setEncodedPoint(e.latlng.lat,e.latlng.lng,true));forceMapSize();setTimeout(forceMapSize,200);setTimeout(forceMapSize,800);setTimeout(forceMapSize,1600);if(navigator.geolocation){navigator.geolocation.getCurrentPosition(pos=>{const lat=pos.coords.latitude,lng=pos.coords.longitude;currentMarker=L.marker([lat,lng],{icon:spheroidIcon('hp-blue')}).addTo(map).bindTooltip('Current location');selectedLL={lat,lng};map.setView([lat,lng],15)},()=>{}, {enableHighAccuracy:true,timeout:6000,maximumAge:30000})}}
 function forceMapSize(){if(map)map.invalidateSize(false)}
-function setReference(lat,lng,fly=false){
-  selectedLL={lat,lng};
-  const txt=`${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-  document.getElementById('mapref').value=txt;
-  if(!selectedMarker)selectedMarker=L.marker([lat,lng],{icon:spheroidIcon('hp-green')}).addTo(map).bindTooltip('Selected reference');
-  else selectedMarker.setLatLng([lat,lng]);
-  if(fly&&map)map.panTo([lat,lng]);
-}
-function useMapCenter(){
-  if(!map){toast('Map unavailable');return}
-  const c=map.getCenter();
-  setReference(c.lat,c.lng,false);
-  toast('Map center saved as reference only');
-}
-
-/* walkthrough */
-const WALKTHROUGH_KEY='hashpath.walkthrough.seen.v7';
-const WALKTHROUGH_STEPS=[
-  {title:'Hashpath is not just a pin.',body:'A pin says where. A Hashpath says how to actually arrive: gate, code, parking, stairs, door, warning, fallback.',code:'#7BGPSDMUTc4729pFCDCsEN4Ld1T^2'},
-  {title:'Start with a real Hashsite.',body:'The first segment begins with # and a real Hashsite. This page will not fake one from a map click.',code:'#7BGPSDMUT'},
-  {title:'Add primitives.',body:'Lowercase primitives describe what each next segment means: p parking, c code, s stairs, d door, w warning, f fallback.',code:'#7BGPSDMUTc4729pFCDCsEN4Ld1T^2'},
-  {title:'Use the map as reference.',body:'Until the real Hashsite encoder is imported, map clicks create visual/reference points only. Paste the real compact code into the segment field.',code:'blue = current\\ngreen = selected reference\\nred = added segment reference'}
-];
-let walkIndex=0;
-function hasSeenWalkthrough(){try{return localStorage.getItem(WALKTHROUGH_KEY)==='true'}catch(e){return false}}
-function markWalkthroughSeen(){try{localStorage.setItem(WALKTHROUGH_KEY,'true')}catch(e){}}
-function showWalkthrough(force=false){if(!force&&hasSeenWalkthrough())return;walkIndex=0;renderWalkthrough();document.getElementById('walkthrough').classList.add('show');setTimeout(forceMapSize,100)}
-function renderWalkthrough(){const s=WALKTHROUGH_STEPS[walkIndex];document.getElementById('walk-title').textContent=s.title;document.getElementById('walk-body').textContent=s.body;document.getElementById('walk-code').textContent=s.code||'';document.getElementById('walk-primary').textContent=walkIndex===WALKTHROUGH_STEPS.length-1?'Done':'Next';document.getElementById('walk-progress').innerHTML=WALKTHROUGH_STEPS.map((_,i)=>`<span class="dot ${i===walkIndex?'active':''}"></span>`).join('')}
-function nextWalkthrough(){if(walkIndex<WALKTHROUGH_STEPS.length-1){walkIndex++;renderWalkthrough();return}closeWalkthrough()}
-function skipWalkthrough(){closeWalkthrough()}function dismissWalkthrough(){closeWalkthrough();toast('Walkthrough dismissed')}
-function closeWalkthrough(){markWalkthroughSeen();document.getElementById('walkthrough').classList.remove('show');setTimeout(forceMapSize,100)}
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('walkthrough').classList.contains('show'))dismissWalkthrough()});
-
-/* builder */
-function cleanFirst(s){s=(s||'').trim().replace(/\s+/g,'').toUpperCase().replace(/O/g,'o');if(!s)return'';return s.startsWith('#')?s:'#'+s}
-function cleanPayload(s){return(s||'').trim().replace(/\s+/g,'').toUpperCase().replace(/O/g,'o').replace(/^#+/,'')}
+function setEncodedPoint(lat,lng,pan=false){selectedLL={lat,lng};const code=Hashsite.encode(lat,lng,9);document.getElementById('payload').value=code;document.getElementById('mapref').value=`${lat.toFixed(6)}, ${lng.toFixed(6)} → ${code}`;if(!selectedMarker)selectedMarker=L.marker([lat,lng],{icon:spheroidIcon('hp-green')}).addTo(map).bindTooltip(code);else selectedMarker.setLatLng([lat,lng]).bindTooltip(code);if(pan&&map)map.panTo([lat,lng])}
+function useMapCenter(){if(!map){toast('Map unavailable');return}const c=map.getCenter();setEncodedPoint(c.lat,c.lng,false);toast('Encoded map center')}
+function cleanFull(s){s=(s||'').trim().replace(/\s+/g,'').replace(/^#/,'').toUpperCase().replace(/O/g,'o');return s?'#'+s:''}
+function cleanPayload(s){return(s||'').trim().replace(/\s+/g,'').replace(/^#+/,'').toUpperCase().replace(/O/g,'o')}
 function notePayload(s){s=(s||'').toUpperCase().replace(/O/g,'o').replace(/[^0-9A-Z]/g,'');return s.slice(0,8)||'NOTE'}
-function addSeg(){
-  let prim=document.getElementById('prim').value, raw=document.getElementById('payload').value, note=document.getElementById('note').value.trim(), ref=document.getElementById('mapref').value.trim();
-  if(!raw.trim()&&!note){toast('Add a Hashsite, suffix, payload, or note');return}
-  let token='';
-  if(segs.length===0){
-    token=cleanFirst(raw);
-    if(!token.startsWith('#') || token.length<2){toast('First segment needs a real #Hashsite');return}
-  } else {
-    token=(prim||'n')+cleanPayload(raw||notePayload(note));
-  }
-  segs.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),prim:prim||'first',token,note,ref});
-  addSegmentMarker(ref);
-  clearForm();render();toast('Segment added');
-}
-function addSegmentMarker(ref){
-  if(!map||!segLayer||!ref)return;
-  const m=ref.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
-  if(!m)return;
-  const lat=parseFloat(m[1]),lng=parseFloat(m[2]);
-  L.marker([lat,lng],{icon:spheroidIcon('hp-red')}).addTo(segLayer).bindTooltip('Added segment reference');
-}
-function clearForm(){document.getElementById('payload').value='';document.getElementById('note').value='';document.getElementById('mapref').value='';}
+function splitAltitude(code){const p=code.indexOf('^');return p>=0?{body:code.slice(0,p),alt:code.slice(p)}:{body:code,alt:''}}
+function diffSuffix(prevFull,nextFull){const a=splitAltitude(prevFull.replace(/^#/,'')),b=splitAltitude(nextFull.replace(/^#/,''));let i=0;while(i<a.body.length&&i<b.body.length&&a.body[i]===b.body[i])i++;return b.body.slice(i)+b.alt}
+function lastSpatialFull(){for(let i=segs.length-1;i>=0;i--)if(segs[i].fullCode)return segs[i].fullCode;return''}
+function addSeg(){let prim=document.getElementById('prim').value, raw=document.getElementById('payload').value, note=document.getElementById('note').value.trim(), ref=document.getElementById('mapref').value.trim();if(!raw.trim()&&!note){toast('Add a Hashsite, suffix, payload, or note');return}let token='',fullCode='';if(segs.length===0){fullCode=cleanFull(raw);if(!/^#[0-9A-Zo]{1,18}(\^.+)?$/.test(fullCode)){toast('First segment needs a real #Hashsite');return}token=fullCode}else{if(raw.trim().startsWith('#')){fullCode=cleanFull(raw);const prev=lastSpatialFull();token=(prim||'n')+(prev?diffSuffix(prev,fullCode):fullCode.replace(/^#/,''))}else{token=(prim||'n')+cleanPayload(raw||notePayload(note))}}segs.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),prim:prim||'first',token,note,ref,fullCode});addSegmentMarker(ref,token);clearForm();render();toast('Segment added')}
+function addSegmentMarker(ref,label){if(!map||!segLayer||!ref)return;const m=ref.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);if(!m)return;const lat=parseFloat(m[1]),lng=parseFloat(m[2]);L.marker([lat,lng],{icon:spheroidIcon('hp-red')}).addTo(segLayer).bindTooltip(label||'Added segment')}
+function clearForm(){document.getElementById('payload').value='';document.getElementById('note').value='';document.getElementById('mapref').value=''}
 function getPath(){return segs.length?segs.map(s=>s.token).join(''):''}
 function title(p){return({first:'First point',g:'Gate',c:'Code',p:'Parking',s:'Stairs',e:'Elevator',d:'Door',x:'Dropoff',u:'Pickup',w:'Warning',f:'Fallback',n:'Note'})[p]||'Segment'}
-function render(){
-  const hp=getPath(), out=document.getElementById('out'), read=document.getElementById('readOut');
-  out.textContent=hp||'No Hashpath yet. Add a real first #Hashsite point.';
-  read.textContent=hp||'No Hashpath yet.';
-  out.classList.toggle('emptyOutput',!hp);read.classList.toggle('emptyOutput',!hp);
-  if(!segs.length){
-    document.getElementById('segments').className='empty';
-    document.getElementById('segments').innerHTML='No segments yet. First segment should be a real Hashsite such as <code>#7BGPSDMUT</code>.';
-    document.getElementById('readSegs').innerHTML='<div class="empty">No segments yet.</div>';
-    return;
-  }
-  document.getElementById('segments').className='';
-  const html=segs.map((s,i)=>stepHtml(s,i,true)).join('');
-  document.getElementById('segments').innerHTML=html;
-  document.getElementById('readSegs').innerHTML=segs.map((s,i)=>stepHtml(s,i,false)).join('');
-}
-function stepHtml(s,i,edit){
-  return `<div class="step"><div class="step-top"><div class="num">${i+1}</div><div><div class="st-title">${esc(title(s.prim))}</div><div class="st-token">${esc(s.token)}</div></div></div>${s.ref?`<div class="ref">${esc(s.ref)}</div>`:''}${s.note?`<div class="note">${esc(s.note)}</div>`:''}${edit?`<div class="minirow"><button class="mini" onclick="up('${s.id}')">↑</button><button class="mini" onclick="down('${s.id}')">↓</button><button class="mini" onclick="del('${s.id}')">Remove</button></div>`:''}</div>`;
-}
+function render(){const hp=getPath(),out=document.getElementById('out'),read=document.getElementById('readOut');out.textContent=hp||'No Hashpath yet. Click the map or add a first #Hashsite point.';read.textContent=hp||'No Hashpath yet.';out.classList.toggle('emptyOutput',!hp);read.classList.toggle('emptyOutput',!hp);if(!segs.length){document.getElementById('segments').className='empty';document.getElementById('segments').innerHTML='No segments yet. Click the map or paste a first Hashsite such as <code>#7BGPSDMUT</code>.';document.getElementById('readSegs').innerHTML='<div class="empty">No segments yet.</div>';return}document.getElementById('segments').className='';document.getElementById('segments').innerHTML=segs.map((s,i)=>stepHtml(s,i,true)).join('');document.getElementById('readSegs').innerHTML=segs.map((s,i)=>stepHtml(s,i,false)).join('')}
+function stepHtml(s,i,edit){return `<div class="step"><div class="step-top"><div class="num">${i+1}</div><div><div class="st-title">${esc(title(s.prim))}</div><div class="st-token">${esc(s.token)}</div></div></div>${s.fullCode&&s.fullCode!==s.token?`<div class="full">full ${esc(s.fullCode)}</div>`:''}${s.ref?`<div class="ref">${esc(s.ref)}</div>`:''}${s.note?`<div class="note">${esc(s.note)}</div>`:''}${edit?`<div class="minirow"><button class="mini" onclick="up('${s.id}')">↑</button><button class="mini" onclick="down('${s.id}')">↓</button><button class="mini" onclick="del('${s.id}')">Remove</button></div>`:''}</div>`}
 function del(id){segs=segs.filter(s=>s.id!==id);rebuildSegmentMarkers();render()}
-function rebuildSegmentMarkers(){if(!segLayer)return;segLayer.clearLayers();segs.forEach(s=>addSegmentMarker(s.ref))}
+function rebuildSegmentMarkers(){if(!segLayer)return;segLayer.clearLayers();segs.forEach(s=>addSegmentMarker(s.ref,s.token))}
 function move(id,d){let i=segs.findIndex(s=>s.id===id),j=i+d;if(i<0||j<0||j>=segs.length)return;[segs[i],segs[j]]=[segs[j],segs[i]];render()}function up(id){move(id,-1)}function down(id){move(id,1)}
 function mode(m){document.body.classList.toggle('read',m==='read');document.getElementById('bBuild').classList.toggle('active',m!=='read');document.getElementById('bRead').classList.toggle('active',m==='read');render();setTimeout(forceMapSize,50)}
 function copyPath(){const hp=getPath();if(!hp){toast('No Hashpath yet');return}navigator.clipboard.writeText(hp).then(()=>toast('Copied')).catch(()=>toast('Copy failed'))}
-function sharePath(){const hp=getPath();if(!hp){toast('No Hashpath yet');return}const t=hp+('\n\n'+segs.map((s,i)=>`${i+1}. ${title(s.prim)} ${s.token}${s.ref?' @ '+s.ref:''}${s.note?' — '+s.note:''}`).join('\n'));if(navigator.share)navigator.share({title:'Hashpath',text:t}).catch(()=>copyPath());else navigator.clipboard.writeText(t).then(()=>toast('Copied'))}
+function sharePath(){const hp=getPath();if(!hp){toast('No Hashpath yet');return}const t=hp+('\n\n'+segs.map((s,i)=>`${i+1}. ${title(s.prim)} ${s.token}${s.fullCode&&s.fullCode!==s.token?' = '+s.fullCode:''}${s.ref?' @ '+s.ref:''}${s.note?' — '+s.note:''}`).join('\n'));if(navigator.share)navigator.share({title:'Hashpath',text:t}).catch(()=>copyPath());else navigator.clipboard.writeText(t).then(()=>toast('Copied'))}
 function toast(s){let e=document.getElementById('toast');e.textContent=s;e.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>e.classList.remove('show'),2000)}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
-render();
-window.addEventListener('load',()=>{initMap();setTimeout(()=>showWalkthrough(false),350)});
-window.addEventListener('resize',()=>setTimeout(forceMapSize,100));
+/* walkthrough */
+const WALKTHROUGH_KEY='hashpath.walkthrough.seen.v8';
+const WALKTHROUGH_STEPS=[{title:'Hashpath is not just a pin.',body:'A pin says where. A Hashpath says how to actually arrive: gate, code, parking, stairs, door, warning, fallback.',code:'#7BGPSDMUTc4729pFCDCsEN4Ld1T^2'},{title:'Map clicks encode real Hashsites.',body:'The map now calls the inline Hashsite encoder ported from the C library. Click anywhere to fill the first-point field.',code:'35.222, -101.831 → #7BA2CSoDZ'},{title:'Later points compress.',body:'After the first full Hashsite, a later mappable #Hashsite is converted into a primitive plus differential suffix.',code:'#7BGPSDMUT → pFCDC'},{title:'Colors mean something.',body:'Blue is current location. Green is selected map point. Red is an added segment reference.',code:'blue / green / red'}];
+let walkIndex=0;function hasSeenWalkthrough(){try{return localStorage.getItem(WALKTHROUGH_KEY)==='true'}catch(e){return false}}function markWalkthroughSeen(){try{localStorage.setItem(WALKTHROUGH_KEY,'true')}catch(e){}}function showWalkthrough(force=false){if(!force&&hasSeenWalkthrough())return;walkIndex=0;renderWalkthrough();document.getElementById('walkthrough').classList.add('show');setTimeout(forceMapSize,100)}function renderWalkthrough(){const s=WALKTHROUGH_STEPS[walkIndex];document.getElementById('walk-title').textContent=s.title;document.getElementById('walk-body').textContent=s.body;document.getElementById('walk-code').textContent=s.code||'';document.getElementById('walk-primary').textContent=walkIndex===WALKTHROUGH_STEPS.length-1?'Done':'Next';document.getElementById('walk-progress').innerHTML=WALKTHROUGH_STEPS.map((_,i)=>`<span class="dot ${i===walkIndex?'active':''}"></span>`).join('')}function nextWalkthrough(){if(walkIndex<WALKTHROUGH_STEPS.length-1){walkIndex++;renderWalkthrough();return}closeWalkthrough()}function skipWalkthrough(){closeWalkthrough()}function dismissWalkthrough(){closeWalkthrough();toast('Walkthrough dismissed')}function closeWalkthrough(){markWalkthroughSeen();document.getElementById('walkthrough').classList.remove('show');setTimeout(forceMapSize,100)}document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('walkthrough').classList.contains('show'))dismissWalkthrough()});
+
+render();window.addEventListener('load',()=>{console.log('Hashsite sanity:',Hashsite.encode(35.222,-101.831,9));initMap();setTimeout(()=>showWalkthrough(false),350)});window.addEventListener('resize',()=>setTimeout(forceMapSize,100));
 </script>
 </body>
 </html>
