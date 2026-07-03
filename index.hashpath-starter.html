@@ -28,7 +28,33 @@ button{border:1px solid var(--border);border-radius:9px;background:rgba(255,255,
 .step{border:1px solid #303752;background:#080912;border-radius:11px;padding:9px 86px 9px 9px;margin-bottom:8px;position:relative}.step-top{display:flex;align-items:center;gap:8px}.num{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff,#a4ffd5 20%,var(--green) 65%,#005036);border:1px solid #13b979;font-family:var(--mono);font-size:10px;color:#00170f}.st-title{font-weight:850}.st-token{font-family:var(--mono);font-size:12px;color:#d8fff0;margin-top:2px}.note,.ref,.full{font-size:12px;color:#cbd5f1;margin-top:6px;line-height:1.35;white-space:pre-wrap}.ref,.full{color:#8da0ca;font-family:var(--mono)}.minirow{position:absolute;right:8px;top:8px;display:flex;gap:4px;margin-top:0}.mini{font-size:10px;padding:4px 6px;color:#bbbbd8;min-width:24px}
 .empty{border:1px dashed #303752;border-radius:11px;padding:10px;color:#8995b7;font-size:12px}.actions{display:flex;gap:8px;margin-top:10px}.actions button{flex:1}.reader{display:none}.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#080912;border:1px solid var(--border);border-radius:9px;padding:8px 14px;font-family:var(--mono);font-size:12px;opacity:0;transition:.2s;pointer-events:none;z-index:11000}.toast.show{opacity:1}
 .walkthrough{position:fixed;inset:0;background:rgba(0,0,15,.45);display:none;align-items:center;justify-content:center;z-index:10000;padding:20px;backdrop-filter:blur(2px)}.walkthrough.show{display:flex}.walk-card{width:min(430px,100%);background:#0b0c15;border:1px solid #26304b;border-radius:16px;padding:17px;box-shadow:0 20px 55px rgba(0,0,0,.42);position:relative}.walk-x{position:absolute;right:10px;top:10px;border:0;background:transparent;color:#9fa9ca;padding:5px 7px;font-size:18px;line-height:1}.walk-kicker{color:#71ffb7;font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px}.walk-card h2{margin:0 24px 8px 0;font-size:22px;line-height:1.08}.walk-card p{color:#cfd8f0;line-height:1.45;margin:0 0 14px;font-size:14px}.walk-code{font-family:var(--mono);font-size:13px;background:#05070e;border:1px solid #26304b;border-radius:10px;padding:10px;color:#e9fff5;margin:10px 0 14px;white-space:pre-wrap;word-break:break-word}.walk-progress{display:flex;gap:5px;margin:8px 0 14px}.dot{width:7px;height:7px;border-radius:50%;background:#33405c}.dot.active{background:#00d97e}.walk-actions{display:flex;gap:8px;justify-content:space-between;align-items:center}.walk-actions-right{display:flex;gap:8px}.walk-dismiss{color:#aeb6da;background:transparent;border-color:#303752}
-@media(max-width:820px){#main{flex-direction:column-reverse}#panel{width:100%;min-width:0;max-width:none;height:54%;border-right:0;border-top:1px solid var(--border)}#mapcol{height:46%;min-width:0;flex:none}.tag{display:none}nav a.hide{display:none}}
+@media(max-width:820px){
+  html,body{height:auto;min-height:100%;overflow:auto}
+  body{display:block}
+  header{position:sticky;top:0;z-index:100;height:auto;min-height:42px;gap:8px;flex-wrap:wrap}
+  #main{height:auto;min-height:0;display:block;width:100%}
+  #mapcol{height:42vh;min-height:260px;width:100%;position:relative;display:block;flex:none}
+  #panel{width:100%;min-width:0;max-width:none;height:auto;max-height:none;overflow:visible;border-right:0;border-top:1px solid var(--border);padding:12px 12px 18px}
+  .top-output{position:static;top:auto}
+  .tag{display:none}
+  nav{gap:6px;flex-wrap:wrap}
+  nav a.hide{display:none}
+}
+@media(max-width:520px){
+  #mapcol{height:38vh;min-height:230px}
+  .row{flex-direction:column;gap:0}
+  .field[style]{max-width:none!important}
+  .actions{flex-direction:column}
+  .step{padding-right:72px}
+}
+.share-panel{position:fixed;inset:auto 12px 12px 12px;z-index:12000;background:#0b0c15;border:1px solid #26304b;border-radius:14px;padding:12px;box-shadow:0 20px 55px rgba(0,0,0,.55);display:none}
+.share-panel.show{display:block}
+.share-panel h2{font-size:13px;margin:0 0 8px}
+.share-panel textarea{width:100%;min-height:120px;font-family:var(--mono);font-size:12px}
+.share-panel .share-actions{display:flex;gap:8px;margin-top:8px}
+.share-panel .share-actions button{flex:1}
+@media(min-width:821px){.share-panel{left:auto;width:430px}}
+
 </style>
 </head>
 <body>
@@ -85,6 +111,15 @@ button{border:1px solid var(--border);border-radius:9px;background:rgba(255,255,
 </div>
 
 <div id="toast" class="toast"></div>
+<div id="sharePanel" class="share-panel" role="dialog" aria-label="Share Hashpath">
+  <h2>Share Hashpath</h2>
+  <textarea id="shareText" readonly></textarea>
+  <div class="share-actions">
+    <button onclick="copySharePanel()">📋 Copy text</button>
+    <button onclick="smsShare()">💬 SMS</button>
+    <button onclick="closeSharePanel()">× Close</button>
+  </div>
+</div>
 
 <script>
 /* Inline JS port of the Hashsite C encoder: ll2hsps(), ll2a(), ll2b(), ll2n(). */
@@ -328,16 +363,48 @@ function copyTextRobust(text){
 function copyPath(){
   const hp=getPath();
   if(!hp){toast('No Hashpath yet');return}
-  copyTextRobust(hp).then(()=>toast('Copied')).catch(()=>toast('Copy failed — select text manually'));
+  copyTextRobust(hp).then(()=>toast('Copied')).catch(()=>{openSharePanel(hp);toast('Copy blocked — share panel opened')});
+}
+function buildShareText(){
+  const hp=getPath();
+  if(!hp) return '';
+  return hp+('\n\n'+segs.map((s,i)=>`${i+1}. ${title(i===0?'first':primForIndex(s,i))} ${tokenForIndex(i)}${s.note?' — '+s.note:''}`).join('\n'));
+}
+function openSharePanel(text){
+  const p=document.getElementById('sharePanel'), ta=document.getElementById('shareText');
+  if(!p||!ta) return;
+  ta.value=text;
+  p.classList.add('show');
+  setTimeout(()=>{ta.focus();ta.select()},50);
+}
+function closeSharePanel(){
+  const p=document.getElementById('sharePanel');
+  if(p) p.classList.remove('show');
+}
+function copySharePanel(){
+  const ta=document.getElementById('shareText');
+  const text=ta ? ta.value : buildShareText();
+  copyTextRobust(text).then(()=>toast('Copied share text')).catch(()=>{if(ta){ta.focus();ta.select()} toast('Select text and copy manually')});
+}
+function smsShare(){
+  const text=encodeURIComponent((document.getElementById('shareText')?.value)||buildShareText());
+  if(!text){toast('No Hashpath yet');return}
+  window.location.href='sms:?&body='+text;
 }
 function sharePath(){
   const hp=getPath();
   if(!hp){toast('No Hashpath yet');return}
-  const t=hp+('\n\n'+segs.map((s,i)=>`${i+1}. ${title(i===0?'first':primForIndex(s,i))} ${tokenForIndex(i)}${s.note?' — '+s.note:''}`).join('\n'));
-  if(navigator.share){
-    navigator.share({title:'Hashpath',text:t}).catch(()=>copyTextRobust(t).then(()=>toast('Copied share text')).catch(()=>toast('Share/copy failed')));
+  const text=buildShareText();
+
+  // Native Web Share works only on HTTPS / supported browsers / user gesture.
+  // Use it when it is likely to work; otherwise show an explicit copy/SMS panel.
+  if(navigator.share && window.isSecureContext){
+    navigator.share({title:'Hashpath',text})
+      .then(()=>toast('Shared'))
+      .catch(()=>{openSharePanel(text);toast('Share panel opened')});
   }else{
-    copyTextRobust(t).then(()=>toast('Copied share text')).catch(()=>toast('Share/copy failed — select text manually'));
+    openSharePanel(text);
+    copyTextRobust(text).then(()=>toast('Copied share text')).catch(()=>toast('Share panel opened'));
   }
 }
 function toast(s){let e=document.getElementById('toast');e.textContent=s;e.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>e.classList.remove('show'),2000)}
