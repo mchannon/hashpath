@@ -25,7 +25,7 @@ h1{font-size:26px;line-height:1.05;margin:6px 0 8px}.kicker{font-size:11px;text-
 input,select,textarea{width:100%;border:1px solid #303752;background:#080912;color:var(--text);border-radius:9px;padding:8px;font-family:var(--ui);font-size:13px}textarea{min-height:62px;resize:vertical}
 button{border:1px solid var(--border);border-radius:9px;background:rgba(255,255,255,.07);color:var(--text);font-weight:800;font-size:12px;padding:8px 10px;cursor:pointer}button.primary{background:rgba(0,217,126,.17);border-color:#087b51}button.blue{background:rgba(58,143,255,.17);border-color:#1f5ea5}button.red{background:rgba(255,74,58,.16);border-color:#8b2a24}
 .help{font-size:11px;color:#8e9abe;line-height:1.4;margin-top:7px}.code{font-family:var(--mono);font-size:14px;line-height:1.45;word-break:break-word;white-space:pre-wrap;background:#05070e;border:1px solid #26304b;border-radius:10px;padding:10px;color:#e9fff5;min-height:44px}.code.emptyOutput{color:#7e8bad}
-.step{border:1px solid #303752;background:#080912;border-radius:11px;padding:9px;margin-bottom:8px}.step-top{display:flex;align-items:center;gap:8px}.num{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff,#a4ffd5 20%,var(--green) 65%,#005036);border:1px solid #13b979;font-family:var(--mono);font-size:10px;color:#00170f}.st-title{font-weight:850}.st-token{font-family:var(--mono);font-size:12px;color:#d8fff0;margin-top:2px}.note,.ref,.full{font-size:12px;color:#cbd5f1;margin-top:6px;line-height:1.35;white-space:pre-wrap}.ref,.full{color:#8da0ca;font-family:var(--mono)}.minirow{display:flex;gap:5px;margin-top:8px}.mini{font-size:10px;padding:5px 7px;color:#bbbbd8}
+.step{border:1px solid #303752;background:#080912;border-radius:11px;padding:9px 86px 9px 9px;margin-bottom:8px;position:relative}.step-top{display:flex;align-items:center;gap:8px}.num{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff,#a4ffd5 20%,var(--green) 65%,#005036);border:1px solid #13b979;font-family:var(--mono);font-size:10px;color:#00170f}.st-title{font-weight:850}.st-token{font-family:var(--mono);font-size:12px;color:#d8fff0;margin-top:2px}.note,.ref,.full{font-size:12px;color:#cbd5f1;margin-top:6px;line-height:1.35;white-space:pre-wrap}.ref,.full{color:#8da0ca;font-family:var(--mono)}.minirow{position:absolute;right:8px;top:8px;display:flex;gap:4px;margin-top:0}.mini{font-size:10px;padding:4px 6px;color:#bbbbd8;min-width:24px}
 .empty{border:1px dashed #303752;border-radius:11px;padding:10px;color:#8995b7;font-size:12px}.actions{display:flex;gap:8px;margin-top:10px}.actions button{flex:1}.reader{display:none}.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#080912;border:1px solid var(--border);border-radius:9px;padding:8px 14px;font-family:var(--mono);font-size:12px;opacity:0;transition:.2s;pointer-events:none;z-index:11000}.toast.show{opacity:1}
 .walkthrough{position:fixed;inset:0;background:rgba(0,0,15,.45);display:none;align-items:center;justify-content:center;z-index:10000;padding:20px;backdrop-filter:blur(2px)}.walkthrough.show{display:flex}.walk-card{width:min(430px,100%);background:#0b0c15;border:1px solid #26304b;border-radius:16px;padding:17px;box-shadow:0 20px 55px rgba(0,0,0,.42);position:relative}.walk-x{position:absolute;right:10px;top:10px;border:0;background:transparent;color:#9fa9ca;padding:5px 7px;font-size:18px;line-height:1}.walk-kicker{color:#71ffb7;font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px}.walk-card h2{margin:0 24px 8px 0;font-size:22px;line-height:1.08}.walk-card p{color:#cfd8f0;line-height:1.45;margin:0 0 14px;font-size:14px}.walk-code{font-family:var(--mono);font-size:13px;background:#05070e;border:1px solid #26304b;border-radius:10px;padding:10px;color:#e9fff5;margin:10px 0 14px;white-space:pre-wrap;word-break:break-word}.walk-progress{display:flex;gap:5px;margin:8px 0 14px}.dot{width:7px;height:7px;border-radius:50%;background:#33405c}.dot.active{background:#00d97e}.walk-actions{display:flex;gap:8px;justify-content:space-between;align-items:center}.walk-actions-right{display:flex;gap:8px}.walk-dismiss{color:#aeb6da;background:transparent;border-color:#303752}
 @media(max-width:820px){#main{flex-direction:column-reverse}#panel{width:100%;min-width:0;max-width:none;height:54%;border-right:0;border-top:1px solid var(--border)}#mapcol{height:46%;min-width:0;flex:none}.tag{display:none}nav a.hide{display:none}}
@@ -49,7 +49,7 @@ button{border:1px solid var(--border);border-radius:9px;background:rgba(255,255,
         <button onclick="sharePath()">📲 Text/share</button>
         <button class="primary" onclick="copyPath()">📋 Copy</button>
       </div>
-      <div class="help">Map clicks encode real Hashsites. Crosshair/map center is used if you add a mappable segment with an empty input. Hidden infill is serialized when follow-on suffixes need it. Example: <code>#7BGPSDMUTc4729pFCDCsEN4Ld1T^2</code></div>
+      <div class="help">Map clicks encode real Hashsites. Crosshair/map center is used if you add a mappable segment with an empty input. Generated output is recomputed from the current segment order; non-first spatial segments never keep a leading #. Example: <code>#7BGPSDMUTc4729pFCDCsEN4Ld1T^2</code></div>
     </div>
 
     <section class="builder">
@@ -60,6 +60,7 @@ button{border:1px solid var(--border);border-radius:9px;background:rgba(255,255,
             <label>Primitive</label>
             <select id="prim">
               <option value="">First point</option>
+              <option value="h">h point</option>
               <option value="g">g gate</option><option value="c">c code</option><option value="p">p parking</option><option value="s">s stairs</option><option value="e">e elevator</option><option value="d">d door</option><option value="x">x dropoff</option><option value="u">u pickup</option><option value="w">w warning</option><option value="f">f fallback</option><option value="n">n note</option>
             </select>
           </div>
@@ -194,21 +195,45 @@ function expandVisibleFromHidden(visible, hidden, requiredLen){
   const n=Math.max(codeBody(v).length, Math.min(requiredLen, body.length));
   return '#'+body.slice(0,n)+codeAlt(h);
 }
-function requiredFirstAnchorLen(){
-  if(segs.length < 2) return 0;
-  for(let i=1;i<segs.length;i++){
-    if(segs[i].hiddenFullCode) return codeLen(segs[i].hiddenFullCode);
+function spatialHidden(s){
+  return s && (s.hiddenFullCode || (String(s.fullCode||'').startsWith('#') ? s.fullCode : ''));
+}
+function spatialVisible(s){
+  return s && (s.fullCode || (String(s.token||'').startsWith('#') ? s.token : ''));
+}
+function primForIndex(s,i){
+  if(i===0) return '';
+  if(s.prim && s.prim!=='first') return s.prim;
+  return 'h'; // generic Hashsite waypoint if a former first-point is moved later
+}
+function hasLaterSpatial(i){
+  for(let j=i+1;j<segs.length;j++) if(spatialHidden(segs[j])) return true;
+  return false;
+}
+function tokenForIndex(i){
+  const s=segs[i];
+  const hidden=spatialHidden(s);
+  if(hidden){
+    if(i===0){
+      // If later suffixes depend on this anchor, serialize enough infill for them to decode.
+      return hasLaterSpatial(0) ? cleanFull(hidden) : (spatialVisible(s) || cleanFull(hidden));
+    }
+    const prevHidden=previousSpatialHidden(i);
+    const suffix=prevHidden ? diffSuffix(prevHidden,hidden) : stripHash(hidden);
+    return primForIndex(s,i)+suffix;
   }
-  return 0;
+  if(i===0) return String(s.token||'').replace(/^[a-z]/,'');
+  const tok=String(s.token||'');
+  if(/^[a-z]/.test(tok)) return tok;
+  return primForIndex(s,i)+cleanPayload(tok);
+}
+function previousSpatialHidden(i){
+  for(let j=i-1;j>=0;j--) if(spatialHidden(segs[j])) return spatialHidden(segs[j]);
+  return '';
 }
 function serializedPath(){
-  if(!segs.length) return '';
-  const parts=[];
-  const first=segs[0];
-  const needed=requiredFirstAnchorLen();
-  if(first.hiddenFullCode && needed>codeLen(first.fullCode||first.token)){
-    parts.push(expandVisibleFromHidden(first.fullCode||first.token, first.hiddenFullCode, needed));
-  } else {
+  return segs.length ? segs.map((_,i)=>tokenForIndex(i)).join('') : '';
+} else {
     parts.push(first.token);
   }
   for(let i=1;i<segs.length;i++) parts.push(segs[i].token);
@@ -283,7 +308,7 @@ function addSeg(){
 function addSegmentMarker(ref,label){if(!map||!segLayer||!ref)return;const m=ref.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);if(!m)return;const lat=parseFloat(m[1]),lng=parseFloat(m[2]);L.marker([lat,lng],{icon:spheroidIcon('hp-red')}).addTo(segLayer).bindTooltip(label||'Added segment')}
 function clearForm(){document.getElementById('payload').value='';document.getElementById('note').value='';document.getElementById('mapref').value='';const p=document.getElementById('precisionref');if(p)p.value='';clearPayloadHidden()}
 function getPath(){return serializedPath()}
-function title(p){return({first:'First point',g:'Gate',c:'Code',p:'Parking',s:'Stairs',e:'Elevator',d:'Door',x:'Dropoff',u:'Pickup',w:'Warning',f:'Fallback',n:'Note'})[p]||'Segment'}
+function title(p){return({first:'First point',h:'Hashsite point',g:'Gate',c:'Code',p:'Parking',s:'Stairs',e:'Elevator',d:'Door',x:'Dropoff',u:'Pickup',w:'Warning',f:'Fallback',n:'Note'})[p]||'Segment'}
 function render(){
   const hp=getPath(),out=document.getElementById('out');
   out.textContent=hp||'No Hashpath yet. Click the map or add a first #Hashsite point.';
@@ -297,8 +322,9 @@ function render(){
   document.getElementById('segments').innerHTML=segs.map((s,i)=>stepHtml(s,i,true)).join('');
 }
 function stepHtml(s,i,edit){
-  const serializedFirst=(i===0 && segs.length)?serializedPath().match(/^#[0-9A-Zo]+(?:\^[-0-9A-Zo]+)?/)?.[0]:'';
-  return `<div class="step"><div class="step-top"><div class="num">${i+1}</div><div><div class="st-title">${esc(title(s.prim))}</div><div class="st-token">${esc(s.token)}</div></div></div>${i===0&&serializedFirst&&serializedFirst!==s.token?`<div class="full">serialized ${esc(serializedFirst)}</div>`:''}${s.fullCode&&s.fullCode!==s.token?`<div class="full">visible ${esc(s.fullCode)}</div>`:''}${s.hiddenFullCode&&s.hiddenFullCode!==s.fullCode?`<div class="full">hidden ${esc(s.hiddenFullCode)}</div>`:''}${s.ref?`<div class="ref">${esc(s.ref)}</div>`:''}${s.note?`<div class="note">${esc(s.note)}</div>`:''}${edit?`<div class="minirow"><button class="mini" onclick="up('${s.id}')">↑</button><button class="mini" onclick="down('${s.id}')">↓</button><button class="mini" onclick="del('${s.id}')">Remove</button></div>`:''}</div>`;
+  const shownToken=tokenForIndex(i);
+  const label=i===0 ? 'First point' : title(primForIndex(s,i));
+  return `<div class="step"><div class="step-top"><div class="num">${i+1}</div><div><div class="st-title">${esc(label)}</div><div class="st-token">${esc(shownToken)}</div></div></div>${s.note?`<div class="note">${esc(s.note)}</div>`:''}${edit?`<div class="minirow"><button class="mini" title="Move up" onclick="up('${s.id}')">↑</button><button class="mini" title="Move down" onclick="down('${s.id}')">↓</button><button class="mini" title="Remove" onclick="del('${s.id}')">×</button></div>`:''}</div>`;
 }
 function del(id){segs=segs.filter(s=>s.id!==id);rebuildSegmentMarkers();render()}
 function rebuildSegmentMarkers(){if(!segLayer)return;segLayer.clearLayers();segs.forEach(s=>addSegmentMarker(s.ref,s.token))}
