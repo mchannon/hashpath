@@ -46,10 +46,10 @@ button{border:1px solid var(--border);border-radius:9px;background:rgba(255,255,
       <h2>Generated Hashpath</h2>
       <div id="out" class="code emptyOutput"></div>
       <div class="actions">
-        <button onclick="sharePath()">Text/share</button>
-        <button class="primary" onclick="copyPath()">Copy</button>
+        <button onclick="sharePath()">📲 Text/share</button>
+        <button class="primary" onclick="copyPath()">📋 Copy</button>
       </div>
-      <div class="help">Map clicks encode real Hashsites. Current zoom controls precision. Example: <code>#7BGPSDMUTc4729pFCDCsEN4Ld1T^2</code></div>
+      <div class="help">Map clicks encode real Hashsites. Display length follows zoom; hidden full-depth anchors are used for follow-on suffix math. Example: <code>#7BGPSDMUTc4729pFCDCsEN4Ld1T^2</code></div>
     </div>
 
     <section class="builder">
@@ -68,7 +68,7 @@ button{border:1px solid var(--border);border-radius:9px;background:rgba(255,255,
         <div class="field"><label>Human note</label><textarea id="note" placeholder="Optional note: west gate, park here, upstairs door, etc."></textarea></div>
         <div class="field"><label>Map reference</label><input id="mapref" readonly placeholder="Click map or use map center"></div>
         <div class="field"><label>Zoom-derived precision</label><input id="precisionref" readonly placeholder="Hashsite precision follows map zoom"></div>
-        <div class="row"><button class="primary" onclick="addSeg()">Add segment</button><button class="blue" onclick="useMapCenter()">Use map center</button><button class="red" onclick="clearForm()">Clear</button></div>
+        <div class="row"><button class="primary" onclick="addSeg()">➕ Add segment</button><button class="blue" onclick="useMapCenter()">🎯 Use map center</button><button class="red" onclick="clearForm()">🧹 Clear</button></div>
       </div>
 
       <div class="card"><h2>Segments</h2><div id="segments" class="empty">No segments yet. Click the map or paste a first Hashsite such as <code>#7BGPSDMUT</code>.</div></div>
@@ -140,12 +140,18 @@ function setEncodedPoint(lat,lng,pan=false){
   selectedLL={lat,lng};
   const n=currentPrecision();
   const code=Hashsite.encode(lat,lng,n);
-  document.getElementById('payload').value=code;
-  document.getElementById('mapref').value=`${lat.toFixed(6)}, ${lng.toFixed(6)} → ${code}`;
+  const full=Hashsite.encode(lat,lng,10); // hidden infill anchor for suffix math
+  const payload=document.getElementById('payload');
+  payload.value=code;
+  payload.dataset.fullCode=full;
+  payload.dataset.displayCode=code;
+  payload.dataset.lat=String(lat);
+  payload.dataset.lng=String(lng);
+  document.getElementById('mapref').value=`${lat.toFixed(6)}, ${lng.toFixed(6)} → ${code} · hidden ${full}`;
   const pref=document.getElementById('precisionref');
-  if(pref) pref.value=`zoom ${map ? map.getZoom() : '?'} → ${n} chars · ${precisionLabel(n)}`;
-  if(!selectedMarker)selectedMarker=L.marker([lat,lng],{icon:spheroidIcon('hp-green')}).addTo(map).bindTooltip(code);
-  else selectedMarker.setLatLng([lat,lng]).bindTooltip(code);
+  if(pref) pref.value=`zoom ${map ? map.getZoom() : '?'} → ${n} chars visible · hidden 10-char anchor`;
+  if(!selectedMarker)selectedMarker=L.marker([lat,lng],{icon:spheroidIcon('hp-green')}).addTo(map).bindTooltip(`${code} / ${full}`);
+  else selectedMarker.setLatLng([lat,lng]).bindTooltip(`${code} / ${full}`);
   if(pan&&map)map.panTo([lat,lng]);
 }
 function updatePrecisionRefOnly(){
@@ -156,15 +162,80 @@ function updatePrecisionRefOnly(){
 }
 
 function useMapCenter(){if(!map){toast('Map unavailable');return}const c=map.getCenter();setEncodedPoint(c.lat,c.lng,false);toast('Encoded map center')}
+
+function stripHash(code){return String(code||'').replace(/^#/,'')}
+function codeBody(code){return stripHash(String(code||'').split('^')[0])}
+function codeAlt(code){const s=String(code||'');const i=s.indexOf('^');return i>=0?s.slice(i):''}
+function visibleToHiddenFull(rawVisible, rawHidden){
+  const v=cleanFull(rawVisible);
+  const h=cleanFull(rawHidden);
+  if(!v) return {visible:'', hidden:''};
+  // Trust hidden only when it begins with the visible body. This is the infill mechanism.
+  if(h && codeBody(h).startsWith(codeBody(v))) return {visible:v, hidden:h};
+  return {visible:v, hidden:v};
+}
+function payloadHiddenFull(){
+  const p=document.getElementById('payload');
+  return p && p.dataset ? (p.dataset.fullCode || '') : '';
+}
+function clearPayloadHidden(){
+  const p=document.getElementById('payload');
+  if(!p || !p.dataset) return;
+  delete p.dataset.fullCode; delete p.dataset.displayCode; delete p.dataset.lat; delete p.dataset.lng;
+}
+
 function cleanFull(s){s=(s||'').trim().replace(/\s+/g,'').replace(/^#/,'').toUpperCase().replace(/O/g,'o');return s?'#'+s:''}
 function cleanPayload(s){return(s||'').trim().replace(/\s+/g,'').replace(/^#+/,'').toUpperCase().replace(/O/g,'o')}
 function notePayload(s){s=(s||'').toUpperCase().replace(/O/g,'o').replace(/[^0-9A-Z]/g,'');return s.slice(0,8)||'NOTE'}
-function splitAltitude(code){const p=code.indexOf('^');return p>=0?{body:code.slice(0,p),alt:code.slice(p)}:{body:code,alt:''}}
-function diffSuffix(prevFull,nextFull){const a=splitAltitude(prevFull.replace(/^#/,'')),b=splitAltitude(nextFull.replace(/^#/,''));let i=0;while(i<a.body.length&&i<b.body.length&&a.body[i]===b.body[i])i++;return b.body.slice(i)+b.alt}
-function lastSpatialFull(){for(let i=segs.length-1;i>=0;i--)if(segs[i].fullCode)return segs[i].fullCode;return''}
-function addSeg(){let prim=document.getElementById('prim').value, raw=document.getElementById('payload').value, note=document.getElementById('note').value.trim(), ref=document.getElementById('mapref').value.trim();if(!raw.trim()&&!note){toast('Add a Hashsite, suffix, payload, or note');return}let token='',fullCode='';if(segs.length===0){fullCode=cleanFull(raw);if(!/^#[0-9A-Zo]{1,18}(\^.+)?$/.test(fullCode)){toast('First segment needs a real #Hashsite');return}token=fullCode}else{if(raw.trim().startsWith('#')){fullCode=cleanFull(raw);const prev=lastSpatialFull();token=(prim||'n')+(prev?diffSuffix(prev,fullCode):fullCode.replace(/^#/,''))}else{token=(prim||'n')+cleanPayload(raw||notePayload(note))}}segs.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),prim:prim||'first',token,note,ref,fullCode});addSegmentMarker(ref,token);clearForm();render();toast('Segment added')}
+function diffSuffix(prevHiddenFull,nextHiddenFull){
+  const aBody=codeBody(prevHiddenFull), bBody=codeBody(nextHiddenFull), bAlt=codeAlt(nextHiddenFull);
+  let i=0; while(i<aBody.length && i<bBody.length && aBody[i]===bBody[i]) i++;
+  return bBody.slice(i)+bAlt;
+}
+function lastSpatialHiddenFull(){
+  for(let i=segs.length-1;i>=0;i--) if(segs[i].hiddenFullCode) return segs[i].hiddenFullCode;
+  return '';
+}
+function lastSpatialVisibleFull(){
+  for(let i=segs.length-1;i>=0;i--) if(segs[i].fullCode) return segs[i].fullCode;
+  return '';
+}
+function addSeg(){
+  let prim=document.getElementById('prim').value;
+  let raw=document.getElementById('payload').value;
+  let note=document.getElementById('note').value.trim();
+  let ref=document.getElementById('mapref').value.trim();
+  let hiddenCandidate=payloadHiddenFull();
+
+  if(!raw.trim()&&!note){toast('Add a Hashsite, suffix, payload, or note');return}
+
+  let token='', fullCode='', hiddenFullCode='';
+  if(segs.length===0){
+    const pair=visibleToHiddenFull(raw,hiddenCandidate);
+    fullCode=pair.visible; hiddenFullCode=pair.hidden;
+    if(!/^#[0-9A-Zo]{1,18}(\^.+)?$/.test(fullCode)){toast('First segment needs a real #Hashsite');return}
+    token=fullCode;
+  } else {
+    if(raw.trim().startsWith('#')){
+      const pair=visibleToHiddenFull(raw,hiddenCandidate);
+      fullCode=pair.visible; hiddenFullCode=pair.hidden;
+      const prevHidden=lastSpatialHiddenFull();
+      token=(prim||'n')+(prevHidden?diffSuffix(prevHidden,hiddenFullCode):stripHash(fullCode));
+    } else {
+      token=(prim||'n')+cleanPayload(raw||notePayload(note));
+    }
+  }
+
+  segs.push({
+    id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+    prim:prim||'first',
+    token,note,ref,fullCode,hiddenFullCode
+  });
+  addSegmentMarker(ref,token);
+  clearForm();render();toast('Segment added');
+}
 function addSegmentMarker(ref,label){if(!map||!segLayer||!ref)return;const m=ref.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);if(!m)return;const lat=parseFloat(m[1]),lng=parseFloat(m[2]);L.marker([lat,lng],{icon:spheroidIcon('hp-red')}).addTo(segLayer).bindTooltip(label||'Added segment')}
-function clearForm(){document.getElementById('payload').value='';document.getElementById('note').value='';document.getElementById('mapref').value='';const p=document.getElementById('precisionref');if(p)p.value=''}
+function clearForm(){document.getElementById('payload').value='';document.getElementById('note').value='';document.getElementById('mapref').value='';const p=document.getElementById('precisionref');if(p)p.value='';clearPayloadHidden()}
 function getPath(){return segs.length?segs.map(s=>s.token).join(''):''}
 function title(p){return({first:'First point',g:'Gate',c:'Code',p:'Parking',s:'Stairs',e:'Elevator',d:'Door',x:'Dropoff',u:'Pickup',w:'Warning',f:'Fallback',n:'Note'})[p]||'Segment'}
 function render(){
@@ -184,8 +255,42 @@ function del(id){segs=segs.filter(s=>s.id!==id);rebuildSegmentMarkers();render()
 function rebuildSegmentMarkers(){if(!segLayer)return;segLayer.clearLayers();segs.forEach(s=>addSegmentMarker(s.ref,s.token))}
 function move(id,d){let i=segs.findIndex(s=>s.id===id),j=i+d;if(i<0||j<0||j>=segs.length)return;[segs[i],segs[j]]=[segs[j],segs[i]];render()}function up(id){move(id,-1)}function down(id){move(id,1)}
 function mode(m){setTimeout(forceMapSize,50)}
-function copyPath(){const hp=getPath();if(!hp){toast('No Hashpath yet');return}navigator.clipboard.writeText(hp).then(()=>toast('Copied')).catch(()=>toast('Copy failed'))}
-function sharePath(){const hp=getPath();if(!hp){toast('No Hashpath yet');return}const t=hp+('\n\n'+segs.map((s,i)=>`${i+1}. ${title(s.prim)} ${s.token}${s.fullCode&&s.fullCode!==s.token?' = '+s.fullCode:''}${s.ref?' @ '+s.ref:''}${s.note?' — '+s.note:''}`).join('\n'));if(navigator.share)navigator.share({title:'Hashpath',text:t}).catch(()=>copyPath());else navigator.clipboard.writeText(t).then(()=>toast('Copied'))}
+function copyTextRobust(text){
+  if(!text) return Promise.reject(new Error('empty'));
+  if(navigator.clipboard && window.isSecureContext){
+    return navigator.clipboard.writeText(text);
+  }
+  return new Promise((resolve,reject)=>{
+    try{
+      const ta=document.createElement('textarea');
+      ta.value=text;
+      ta.setAttribute('readonly','');
+      ta.style.position='fixed';
+      ta.style.left='-9999px';
+      ta.style.top='0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      const ok=document.execCommand('copy');
+      document.body.removeChild(ta);
+      ok ? resolve() : reject(new Error('execCommand failed'));
+    }catch(e){reject(e)}
+  });
+}
+function copyPath(){
+  const hp=getPath();
+  if(!hp){toast('No Hashpath yet');return}
+  copyTextRobust(hp).then(()=>toast('Copied')).catch(()=>toast('Copy failed — select text manually'));
+}
+function sharePath(){
+  const hp=getPath();
+  if(!hp){toast('No Hashpath yet');return}
+  const t=hp+('\n\n'+segs.map((s,i)=>`${i+1}. ${title(s.prim)} ${s.token}${s.fullCode&&s.fullCode!==s.token?' = '+s.fullCode:''}${s.hiddenFullCode&&s.hiddenFullCode!==s.fullCode?' hidden '+s.hiddenFullCode:''}${s.ref?' @ '+s.ref:''}${s.note?' — '+s.note:''}`).join('\n'));
+  if(navigator.share){
+    navigator.share({title:'Hashpath',text:t}).catch(()=>copyTextRobust(t).then(()=>toast('Copied share text')).catch(()=>toast('Share/copy failed')));
+  }else{
+    copyTextRobust(t).then(()=>toast('Copied share text')).catch(()=>toast('Share/copy failed — select text manually'));
+  }
+}
 function toast(s){let e=document.getElementById('toast');e.textContent=s;e.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>e.classList.remove('show'),2000)}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
